@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# app.py - Flask API for Google Trends analysis
+# app.py - Flask API for Google Trends analysis with web UI
 
-from flask import Flask, request, jsonify, send_file, abort
+from flask import Flask, request, jsonify, send_file, abort, render_template, send_from_directory
 from datetime import datetime
 import os
 from pathlib import Path
@@ -10,7 +10,7 @@ import logging
 
 from google_trends_analyzer import analyze_keyword_report
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
 BASE_DIR = Path(__file__).resolve().parent
 REPORTS_DIR = BASE_DIR / "reports"
@@ -32,17 +32,18 @@ def append_history(entry):
         except Exception:
             history = []
     history.insert(0, entry)
-    # keep recent 200 entries
     history = history[:200]
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)
 
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    """Accepts JSON: {"keyword": "chatgpt", "top_n": 10, "geo": "", "show": false}
-    Returns JSON summary and paths to generated files.
-    """
     data = request.get_json(force=True)
     if not data or "keyword" not in data:
         return jsonify({"error": "Missing 'keyword' in request body"}), 400
@@ -81,20 +82,16 @@ def history():
 
 @app.route("/report/<keyword>", methods=["GET"])
 def report(keyword):
-    # Try to find most recent report files for keyword
     keyword = keyword.strip()
     files = sorted(REPORTS_DIR.glob(f"{keyword}*"), key=os.path.getmtime, reverse=True)
     if not files:
-        # generate on-demand
         try:
             summary = analyze_keyword_report(keyword, out_dir=REPORTS_DIR)
         except Exception as e:
             return jsonify({"error": str(e)}), 500
         return jsonify(summary)
 
-    # return list of files and summary if JSON exists
     file_list = [str(p.name) for p in files]
-    # try to load summary JSON
     summary_file = REPORTS_DIR / f"{keyword}_summary.json"
     summary = None
     if summary_file.exists():
@@ -105,6 +102,14 @@ def report(keyword):
             summary = None
 
     return jsonify({"files": file_list, "summary": summary})
+
+
+@app.route('/reports/<path:filename>')
+def serve_report_file(filename):
+    try:
+        return send_from_directory(REPORTS_DIR, filename, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
 
 
 if __name__ == "__main__":
