@@ -206,5 +206,24 @@ def api_push_tasks(todo_id):
     return jsonify(updated)
 
 
+def _lan_ip():
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+    except OSError:
+        return None
+    finally:
+        s.close()
+
+
 if __name__ == "__main__":
+    lan_ip = _lan_ip()
+    print("=" * 50)
+    print(" 오늘의 할일 관리 서버가 시작되었습니다")
+    print(f"  - 이 PC에서:  http://localhost:5000")
+    if lan_ip:
+        print(f"  - 같은 Wi-Fi의 폰/다른 기기에서: http://{lan_ip}:5000")
+    print("=" * 50)
     app.run(host="0.0.0.0", port=5000, debug=True)
