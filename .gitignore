@@ -3,3 +3,5 @@ __pycache__/
 todos.db
 token.json
 .env
+google_config.bat
+venv/
