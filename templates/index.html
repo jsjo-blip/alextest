@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>오늘의 할일 관리</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>📋 오늘의 할일 관리</h1>
+    <div id="google-status" class="google-status">확인 중...</div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>할일 추가</h2>
+      <form id="add-form" class="add-form">
+        <input type="text" id="f-title" placeholder="할일 제목" required>
+        <input type="text" id="f-desc" placeholder="설명 (선택)">
+        <input type="date" id="f-due">
+        <input type="number" id="f-minutes" placeholder="목표시간(분)" min="0">
+        <label class="checkbox-label">
+          <input type="checkbox" id="f-add-today"> 오늘 할일에 추가
+        </label>
+        <button type="submit">추가</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>연동</h2>
+      <div class="sync-actions">
+        <button id="btn-google-connect">Google 계정 연결</button>
+        <button id="btn-sync-calendar">📅 구글 캘린더 가져오기 (오늘)</button>
+        <button id="btn-sync-tasks">✅ 구글 Tasks 가져오기</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>오늘의 우선순위</h2>
+      <p class="hint">위/아래 버튼으로 순서를 조정하세요.</p>
+      <ul id="today-list" class="todo-list"></ul>
+    </section>
+
+    <section class="card">
+      <h2>전체 할일 목록</h2>
+      <div class="filters">
+        <label><input type="checkbox" id="f-hide-completed"> 완료된 항목 숨기기</label>
+      </div>
+      <ul id="all-list" class="todo-list"></ul>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
