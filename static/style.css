@@ -188,3 +188,65 @@ button.danger { background: #ef4444; }
   font-size: 0.9rem;
   padding: 0.5rem 0;
 }
+
+/* ---------------------------------------------------------- mobile layout */
+
+@media (max-width: 640px) {
+  header {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  header h1 { font-size: 1.1rem; }
+
+  main {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+    gap: 1rem;
+  }
+
+  .card { padding: 1rem; }
+
+  .add-form { flex-direction: column; align-items: stretch; }
+  .add-form input[type="text"],
+  .add-form input[type="date"],
+  .add-form input[type="number"] { flex: 1 1 auto; width: 100%; }
+  .add-form button { width: 100%; padding: 0.7rem; }
+
+  .sync-actions { flex-direction: column; }
+  .sync-actions button { width: 100%; padding: 0.7rem; }
+
+  input, button { font-size: 1rem; }
+
+  .todo-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .todo-item input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: 0.2rem;
+  }
+  .todo-main { flex: 1 1 100%; order: 1; }
+  .todo-meta input[type="date"],
+  .todo-meta input[type="number"] { flex: 1 1 auto; }
+
+  .priority-controls {
+    order: 2;
+    flex-direction: row;
+  }
+  .priority-controls button {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .todo-actions {
+    order: 3;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+  .todo-actions button {
+    flex: 1 1 auto;
+    padding: 0.55rem 0.5rem;
+  }
+}
