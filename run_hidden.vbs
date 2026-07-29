@@ -1,5 +1,5 @@
-' Windows 로그온/부팅 시 자동으로 서버를 백그라운드(창 숨김)로 실행합니다.
-' 작업 스케줄러의 "프로그램 시작" 대상으로 이 파일을 등록하세요.
+' Runs the server hidden in the background at Windows logon/boot.
+' Register this file as the Task Scheduler action's "Start a program" target.
 Set fso = CreateObject("Scripting.FileSystemObject")
 scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
 
