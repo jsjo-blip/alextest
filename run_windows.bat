@@ -17,4 +17,6 @@ if exist google_config.bat (
 echo [3/3] 서버를 시작합니다...
 call venv\Scripts\python app.py
 
-pause
+if "%~1"=="" (
+    pause
+)
