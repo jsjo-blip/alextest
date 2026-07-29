@@ -133,10 +133,11 @@ def auth_google():
 @app.route("/auth/google/callback")
 def auth_google_callback():
     code = request.args.get("code")
+    state = request.args.get("state")
     if not code:
         return jsonify({"error": "missing authorization code"}), 400
     try:
-        gcal.exchange_code(code)
+        gcal.exchange_code(code, state)
     except gcal.GoogleNotConfigured as e:
         return jsonify({"error": str(e)}), 400
     return redirect("/")

@@ -29,6 +29,13 @@ CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")
 
+# PKCE code_verifier is generated per-Flow instance inside authorization_url()
+# and must be reused by the *same* verifier when the code is exchanged for a
+# token. Since build_auth_url() and exchange_code() run in separate HTTP
+# requests (and build separate Flow objects), the verifier is stashed here,
+# keyed by the OAuth `state`, until the callback completes the exchange.
+_pending_verifiers = {}
+
 
 class GoogleNotConfigured(Exception):
     """Raised when Google API credentials/libraries are unavailable."""
@@ -69,12 +76,21 @@ def build_auth_url():
     _, Flow, _, _ = _load_libs()
     flow = Flow.from_client_config(_client_config(), scopes=SCOPES, redirect_uri=REDIRECT_URI)
     auth_url, state = flow.authorization_url(access_type="offline", prompt="consent")
+    _pending_verifiers[state] = flow.code_verifier
     return auth_url, state
 
 
-def exchange_code(code):
+def exchange_code(code, state=None):
+    code_verifier = _pending_verifiers.pop(state, None) if state else None
+    if not code_verifier:
+        raise GoogleNotConfigured(
+            "로그인 요청이 만료되었거나 유효하지 않습니다. /auth/google 로 다시 시도해주세요."
+        )
     _, Flow, _, _ = _load_libs()
-    flow = Flow.from_client_config(_client_config(), scopes=SCOPES, redirect_uri=REDIRECT_URI)
+    flow = Flow.from_client_config(
+        _client_config(), scopes=SCOPES, redirect_uri=REDIRECT_URI,
+        code_verifier=code_verifier, autogenerate_code_verifier=False,
+    )
     flow.fetch_token(code=code)
     creds = flow.credentials
     TOKEN_PATH.write_text(creds.to_json())
