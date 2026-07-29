@@ -6,7 +6,7 @@
 
 - 할일 목록 관리 및 듀데이트(마감일) 설정
 - 오늘 할일 우선순위 설정 (순서 조정 가능)
-- 할일별 목표시간(분) 설정
+- 할일별 목표시간 설정 (수행 시작~종료 시간, 예: 14:00~15:30)
 - 완료 여부 체크
 - Google Calendar / Google Tasks 연동 가져오기·내보내기, 직접 추가
 
@@ -41,7 +41,7 @@ export GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback  # 기본�
 | GET | `/api/todos` | 전체 할일 목록 (쿼리: `due_date`, `today_only`, `include_completed`) |
 | GET | `/api/todos/today` | 오늘 할일 (우선순위 순) |
 | POST | `/api/todos` | 할일 생성 |
-| PATCH | `/api/todos/<id>` | 할일 수정 (제목/설명/듀데이트/목표시간) |
+| PATCH | `/api/todos/<id>` | 할일 수정 (제목/설명/듀데이트/시작~종료 시간) |
 | DELETE | `/api/todos/<id>` | 할일 삭제 |
 | POST | `/api/todos/<id>/complete` | 완료 여부 설정 |
 | POST | `/api/todos/<id>/today-priority` | 오늘 우선순위 설정/해제 |

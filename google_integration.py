@@ -128,24 +128,26 @@ def pull_calendar_events(for_date=None):
         title = event.get("summary", "(제목 없음)")
         start = event["start"].get("dateTime") or event["start"].get("date")
         end = event.get("end", {}).get("dateTime") or event.get("end", {}).get("date")
-        target_minutes = None
+        start_time = end_time = None
         if start and end and "T" in start:
             try:
                 dt_start = datetime.fromisoformat(start.replace("Z", "+00:00"))
                 dt_end = datetime.fromisoformat(end.replace("Z", "+00:00"))
-                target_minutes = int((dt_end - dt_start).total_seconds() // 60)
+                start_time = dt_start.strftime("%H:%M")
+                end_time = dt_end.strftime("%H:%M")
             except ValueError:
                 pass
 
         existing = find_by_external_id("google_calendar", ext_id)
         if existing:
             todo = update_todo(existing["id"], title=title, due_date=for_date.isoformat(),
-                                target_minutes=target_minutes)
+                                start_time=start_time, end_time=end_time)
         else:
             todo = create_todo(
                 title=title,
                 due_date=for_date.isoformat(),
-                target_minutes=target_minutes,
+                start_time=start_time,
+                end_time=end_time,
                 source="google_calendar",
                 external_id=ext_id,
             )
@@ -183,15 +185,25 @@ def pull_tasks(tasklist="@default"):
 def push_todo_to_calendar(todo):
     service = _calendar_service()
     due = todo.get("due_date") or date.today().isoformat()
-    duration = timedelta(minutes=todo.get("target_minutes") or 30)
-    start_dt = datetime.fromisoformat(due)
-    end_dt = start_dt + duration
+    start_time = todo.get("start_time")
+    end_time = todo.get("end_time")
+
+    if start_time and end_time:
+        start_dt = datetime.fromisoformat(f"{due}T{start_time}")
+        end_dt = datetime.fromisoformat(f"{due}T{end_time}")
+        if end_dt <= start_dt:
+            end_dt += timedelta(days=1)
+        body_time = {
+            "start": {"dateTime": start_dt.isoformat()},
+            "end": {"dateTime": end_dt.isoformat()},
+        }
+    else:
+        body_time = {"start": {"date": due}, "end": {"date": due}}
 
     event = service.events().insert(calendarId="primary", body={
         "summary": todo["title"],
         "description": todo.get("description", ""),
-        "start": {"date": due} if duration.total_seconds() == 0 else {"dateTime": start_dt.isoformat()},
-        "end": {"date": due} if duration.total_seconds() == 0 else {"dateTime": end_dt.isoformat()},
+        **body_time,
     }).execute()
 
     from models import update_todo

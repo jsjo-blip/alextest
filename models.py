@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS todos (
     description TEXT DEFAULT '',
     due_date TEXT,
     today_priority INTEGER,
-    target_minutes INTEGER,
+    start_time TEXT,
+    end_time TEXT,
     completed INTEGER NOT NULL DEFAULT 0,
     completed_at TEXT,
     source TEXT NOT NULL DEFAULT 'manual',
@@ -25,6 +26,13 @@ CREATE TABLE IF NOT EXISTS todos (
 CREATE INDEX IF NOT EXISTS idx_todos_due_date ON todos(due_date);
 CREATE INDEX IF NOT EXISTS idx_todos_external_id ON todos(source, external_id);
 """
+
+# Columns added after the initial release; applied to pre-existing DB files
+# that were created before start_time/end_time replaced target_minutes.
+_MIGRATION_COLUMNS = [
+    ("start_time", "TEXT"),
+    ("end_time", "TEXT"),
+]
 
 
 @contextmanager
@@ -42,10 +50,28 @@ def get_db():
 def init_db():
     with get_db() as conn:
         conn.executescript(SCHEMA)
+        existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(todos)")}
+        for name, col_type in _MIGRATION_COLUMNS:
+            if name not in existing_cols:
+                conn.execute(f"ALTER TABLE todos ADD COLUMN {name} {col_type}")
 
 
 def _now():
     return datetime.utcnow().isoformat(timespec="seconds") + "Z"
+
+
+def _duration_minutes(start_time, end_time):
+    if not start_time or not end_time:
+        return None
+    try:
+        t1 = datetime.strptime(start_time, "%H:%M")
+        t2 = datetime.strptime(end_time, "%H:%M")
+    except ValueError:
+        return None
+    minutes = (t2 - t1).total_seconds() / 60
+    if minutes < 0:
+        minutes += 24 * 60  # crosses midnight
+    return int(minutes)
 
 
 def row_to_dict(row):
@@ -53,6 +79,7 @@ def row_to_dict(row):
         return None
     d = dict(row)
     d["completed"] = bool(d["completed"])
+    d["duration_minutes"] = _duration_minutes(d.get("start_time"), d.get("end_time"))
     return d
 
 
@@ -87,7 +114,7 @@ def find_by_external_id(source, external_id):
     return row_to_dict(row)
 
 
-def create_todo(title, description="", due_date=None, target_minutes=None,
+def create_todo(title, description="", due_date=None, start_time=None, end_time=None,
                  today_priority=None, source="manual", external_id=None):
     now = _now()
     if today_priority is True:
@@ -95,10 +122,10 @@ def create_todo(title, description="", due_date=None, target_minutes=None,
     with get_db() as conn:
         cur = conn.execute(
             """INSERT INTO todos
-               (title, description, due_date, today_priority, target_minutes,
+               (title, description, due_date, today_priority, start_time, end_time,
                 completed, completed_at, source, external_id, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, 0, NULL, ?, ?, ?, ?)""",
-            (title, description, due_date, today_priority, target_minutes,
+               VALUES (?, ?, ?, ?, ?, ?, 0, NULL, ?, ?, ?, ?)""",
+            (title, description, due_date, today_priority, start_time, end_time,
              source, external_id, now, now),
         )
         todo_id = cur.lastrowid
@@ -117,7 +144,7 @@ def update_todo(todo_id, **fields):
     if not fields:
         return get_todo(todo_id)
     allowed = {"title", "description", "due_date", "today_priority",
-               "target_minutes", "completed", "completed_at", "source", "external_id"}
+               "start_time", "end_time", "completed", "completed_at", "source", "external_id"}
     updates = {k: v for k, v in fields.items() if k in allowed}
     if not updates:
         return get_todo(todo_id)

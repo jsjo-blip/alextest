@@ -55,7 +55,8 @@ def api_create_todo():
         title=title,
         description=data.get("description", ""),
         due_date=data.get("due_date"),
-        target_minutes=data.get("target_minutes"),
+        start_time=data.get("start_time"),
+        end_time=data.get("end_time"),
         today_priority=True if data.get("add_to_today") else None,
         source="manual",
     )
@@ -76,7 +77,7 @@ def api_update_todo(todo_id):
         return jsonify({"error": "not found"}), 404
     data = request.get_json(force=True, silent=True) or {}
     fields = {k: v for k, v in data.items()
-              if k in ("title", "description", "due_date", "target_minutes")}
+              if k in ("title", "description", "due_date", "start_time", "end_time")}
     todo = models.update_todo(todo_id, **fields)
     return jsonify(todo)
 

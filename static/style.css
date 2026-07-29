@@ -74,7 +74,14 @@ main {
 
 .add-form input[type="text"] { flex: 1 1 160px; }
 .add-form input[type="date"] { flex: 0 0 150px; }
-.add-form input[type="number"] { flex: 0 0 130px; }
+
+.time-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+}
+.time-range input[type="time"] { flex: 0 0 110px; }
 
 input, button {
   font-size: 0.95rem;
@@ -209,8 +216,9 @@ button.danger { background: #ef4444; }
 
   .add-form { flex-direction: column; align-items: stretch; }
   .add-form input[type="text"],
-  .add-form input[type="date"],
-  .add-form input[type="number"] { flex: 1 1 auto; width: 100%; }
+  .add-form input[type="date"] { flex: 1 1 auto; width: 100%; }
+  .add-form .time-range { width: 100%; }
+  .add-form .time-range input[type="time"] { flex: 1 1 0; width: auto; }
   .add-form button { width: 100%; padding: 0.7rem; }
 
   .sync-actions { flex-direction: column; }

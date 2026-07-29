@@ -13,7 +13,7 @@ async function api(path, options = {}) {
   return res.json();
 }
 
-function formatMinutes(minutes) {
+function formatDuration(minutes) {
   if (minutes === null || minutes === undefined) return null;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
@@ -70,30 +70,45 @@ function buildTodoItem(todo, { showPriorityControls, position, total }) {
     refreshAll();
   });
 
-  const minutesInput = document.createElement("input");
-  minutesInput.type = "number";
-  minutesInput.min = "0";
-  minutesInput.style.width = "90px";
-  minutesInput.placeholder = "목표(분)";
-  minutesInput.value = todo.target_minutes ?? "";
-  minutesInput.title = "목표시간(분)";
-  minutesInput.addEventListener("change", async () => {
-    const val = minutesInput.value === "" ? null : parseInt(minutesInput.value, 10);
+  const timeRange = document.createElement("span");
+  timeRange.className = "time-range";
+
+  const startInput = document.createElement("input");
+  startInput.type = "time";
+  startInput.value = todo.start_time || "";
+  startInput.title = "수행 시작 시간";
+
+  const tilde = document.createElement("span");
+  tilde.textContent = "~";
+
+  const endInput = document.createElement("input");
+  endInput.type = "time";
+  endInput.value = todo.end_time || "";
+  endInput.title = "수행 종료 시간";
+
+  const saveTimeRange = async () => {
     await api(`/api/todos/${todo.id}`, {
       method: "PATCH",
-      body: JSON.stringify({ target_minutes: val }),
+      body: JSON.stringify({
+        start_time: startInput.value || null,
+        end_time: endInput.value || null,
+      }),
     });
     refreshAll();
-  });
+  };
+  startInput.addEventListener("change", saveTimeRange);
+  endInput.addEventListener("change", saveTimeRange);
+
+  timeRange.append(startInput, tilde, endInput);
 
   const badge = document.createElement("span");
   badge.className = "badge";
   badge.textContent = sourceBadge(todo.source);
 
-  meta.append(dueInput, minutesInput, badge);
-  if (formatMinutes(todo.target_minutes)) {
+  meta.append(dueInput, timeRange, badge);
+  if (formatDuration(todo.duration_minutes)) {
     const label = document.createElement("span");
-    label.textContent = formatMinutes(todo.target_minutes);
+    label.textContent = formatDuration(todo.duration_minutes);
     meta.appendChild(label);
   }
 
@@ -255,7 +270,8 @@ $("#add-form").addEventListener("submit", async (e) => {
       title,
       description: $("#f-desc").value.trim(),
       due_date: $("#f-due").value || null,
-      target_minutes: $("#f-minutes").value ? parseInt($("#f-minutes").value, 10) : null,
+      start_time: $("#f-start-time").value || null,
+      end_time: $("#f-end-time").value || null,
       add_to_today: $("#f-add-today").checked,
     }),
   });

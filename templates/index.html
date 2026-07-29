@@ -25,7 +25,11 @@
         <input type="text" id="f-title" placeholder="할일 제목" required>
         <input type="text" id="f-desc" placeholder="설명 (선택)">
         <input type="date" id="f-due">
-        <input type="number" id="f-minutes" placeholder="목표시간(분)" min="0">
+        <span class="time-range">
+          <input type="time" id="f-start-time" title="시작 시간">
+          <span>~</span>
+          <input type="time" id="f-end-time" title="종료 시간">
+        </span>
         <label class="checkbox-label">
           <input type="checkbox" id="f-add-today"> 오늘 할일에 추가
         </label>
