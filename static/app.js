@@ -31,9 +31,25 @@ function sourceBadge(source) {
   return map[source] || source;
 }
 
+function todayLocalStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function urgencyClass(todo) {
+  if (todo.completed || !todo.due_date) return "urgency-future";
+  const today = todayLocalStr();
+  if (todo.due_date < today) return "urgency-overdue";
+  if (todo.due_date === today) return "urgency-today";
+  return "urgency-future";
+}
+
 function buildTodoItem(todo, { showPriorityControls, position, total }) {
   const li = document.createElement("li");
-  li.className = "todo-item" + (todo.completed ? " completed" : "");
+  li.className = "todo-item " + urgencyClass(todo) + (todo.completed ? " completed" : "");
   li.dataset.id = todo.id;
 
   const checkbox = document.createElement("input");
@@ -219,6 +235,22 @@ async function refreshToday() {
   });
 }
 
+async function refreshOverdue() {
+  const todos = await api("/api/todos/overdue");
+  const list = $("#overdue-list");
+  list.innerHTML = "";
+  if (!todos.length) {
+    const empty = document.createElement("li");
+    empty.className = "empty";
+    empty.textContent = "기한이 지난 할일이 없습니다.";
+    list.appendChild(empty);
+    return;
+  }
+  todos.forEach((todo) => {
+    list.appendChild(buildTodoItem(todo, { showPriorityControls: false }));
+  });
+}
+
 async function refreshAllList() {
   const hideCompleted = $("#f-hide-completed").checked;
   const todos = await api(`/api/todos?include_completed=${hideCompleted ? "0" : "1"}`);
@@ -256,6 +288,7 @@ async function refreshGoogleStatus() {
 }
 
 function refreshAll() {
+  refreshOverdue();
   refreshToday();
   refreshAllList();
 }

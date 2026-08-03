@@ -83,7 +83,7 @@ def row_to_dict(row):
     return d
 
 
-def list_todos(due_date=None, today_only=False, include_completed=True):
+def list_todos(due_date=None, today_only=False, overdue_only=False, include_completed=True):
     query = "SELECT * FROM todos WHERE 1=1"
     params = []
     if due_date:
@@ -91,6 +91,9 @@ def list_todos(due_date=None, today_only=False, include_completed=True):
         params.append(due_date)
     if today_only:
         query += " AND today_priority IS NOT NULL"
+    if overdue_only:
+        query += " AND due_date IS NOT NULL AND due_date < ? AND completed = 0"
+        params.append(today_str())
     if not include_completed:
         query += " AND completed = 0"
     query += " ORDER BY (today_priority IS NULL), today_priority ASC, due_date ASC, id ASC"

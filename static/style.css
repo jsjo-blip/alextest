@@ -6,6 +6,11 @@
   --accent: #3b82f6;
   --border: #e2e8f0;
   --done: #9ca3af;
+  --urgency-overdue-bg: #fde2e8;
+  --urgency-overdue-border: #f6a8bb;
+  --urgency-today-bg: #dff3fc;
+  --urgency-today-border: #94d3ee;
+  --urgency-future-bg: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -137,7 +142,16 @@ button.danger { background: #ef4444; }
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fafbfc;
+  background: var(--urgency-future-bg);
+}
+
+.todo-item.urgency-overdue {
+  background: var(--urgency-overdue-bg);
+  border-color: var(--urgency-overdue-border);
+}
+.todo-item.urgency-today {
+  background: var(--urgency-today-bg);
+  border-color: var(--urgency-today-border);
 }
 
 .todo-item.completed { opacity: 0.55; }

@@ -44,6 +44,11 @@ def api_today_todos():
     return jsonify(models.list_todos(today_only=True))
 
 
+@app.route("/api/todos/overdue", methods=["GET"])
+def api_overdue_todos():
+    return jsonify(models.list_todos(overdue_only=True))
+
+
 @app.route("/api/todos", methods=["POST"])
 def api_create_todo():
     data = request.get_json(force=True, silent=True) or {}
