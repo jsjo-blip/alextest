@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>한글 놀이터</title>
+  <link rel="stylesheet" href="/static/hangul-game.css">
+</head>
+<body>
+  <div class="topbar">
+    <button id="home-btn" class="home-btn hidden" aria-label="처음으로">🏠</button>
+    <div class="star-counter">⭐ <span id="star-count">0</span></div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+  <div id="praise-banner" class="praise-banner"></div>
+
+  <!-- 홈 화면 -->
+  <section id="screen-home" class="screen active">
+    <h1 class="title">🐣 한글 놀이터</h1>
+    <div class="menu">
+      <button id="menu-consonant" class="menu-btn consonant">
+        <span class="emoji">🦁</span> 자음 배우기
+      </button>
+      <button id="menu-vowel" class="menu-btn vowel">
+        <span class="emoji">🍦</span> 모음 배우기
+      </button>
+      <button id="menu-quiz" class="menu-btn quiz">
+        <span class="emoji">🎯</span> 짝짓기 게임
+      </button>
+    </div>
+  </section>
+
+  <!-- 학습 화면 -->
+  <section id="screen-learn" class="screen">
+    <div class="deck-label" id="deck-label"></div>
+    <div class="card-stage">
+      <button id="prev-btn" class="nav-arrow" aria-label="이전 글자">◀</button>
+      <div class="letter-card">
+        <div class="letter-glyph" id="letter-glyph"></div>
+        <div class="letter-emoji" id="letter-emoji"></div>
+        <div class="letter-word" id="letter-word"></div>
+      </div>
+      <button id="next-btn" class="nav-arrow" aria-label="다음 글자">▶</button>
+    </div>
+    <button id="speaker-btn" class="speaker-btn" aria-label="소리 듣기">🔊</button>
+    <div class="dots" id="dots"></div>
+  </section>
+
+  <!-- 퀴즈 화면 -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-prompt">
+      <div class="quiz-emoji" id="quiz-emoji"></div>
+      <div class="quiz-word" id="quiz-word"></div>
+      <div class="quiz-hint">어떤 글자로 시작할까요?</div>
+    </div>
+    <div class="quiz-options" id="quiz-options"></div>
+  </section>
+
+  <script src="/static/hangul-game.js"></script>
+</body>
+</html>

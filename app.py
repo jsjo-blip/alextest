@@ -28,6 +28,11 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/hangul-game")
+def hangul_game():
+    return render_template("hangul_game.html")
+
+
 # ---------------------------------------------------------------- todos CRUD
 
 @app.route("/api/todos", methods=["GET"])
