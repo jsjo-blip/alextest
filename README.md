@@ -42,6 +42,7 @@ export GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback  # 기본�
 - 🎯 짝짓기 게임: 들려주는 단어에 맞는 글자를 3개 보기 중에서 찾아요. 정답을 맞히면 별과 함께 칭찬 효과가 나옵니다.
 - 별 개수는 브라우저에 저장되어 다음에 다시 열어도 유지됩니다.
 - 브라우저의 음성 합성(Web Speech API)을 사용하므로 한국어 음성을 지원하는 브라우저에서 소리가 재생됩니다.
+- 서버 실행 없이 태블릿 등에서 항상 접속할 수 있도록 `docs/index.html`에 같은 게임의 독립 실행형(단일 HTML) 버전을 포함했습니다. GitHub 저장소 Settings → Pages에서 Source를 `main` 브랜치의 `/docs` 폴더로 지정하면 `https://<사용자명>.github.io/<저장소명>/` 주소로 항상 접속할 수 있습니다.
 
 ## API
 

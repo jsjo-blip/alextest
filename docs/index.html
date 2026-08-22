@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>한글 놀이터</title>
+  <style>
+    :root {
+      --pink: #ff8fb3;
+      --yellow: #ffd166;
+      --sky: #6ec6ff;
+      --mint: #8fe3b0;
+      --purple: #b28dff;
+      --ink: #3a2e5c;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(160deg, #fff1f6 0%, #eaf6ff 55%, #f2ffee 100%);
+      color: var(--ink);
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.2rem;
+      position: relative;
+    }
+    .screen.active { display: flex; }
+
+    /* ---------- top bar ---------- */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .topbar > * { pointer-events: auto; }
+
+    .home-btn {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--card);
+      box-shadow: 0 6px 0 rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .home-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,0.08); }
+    .home-btn.hidden { visibility: hidden; }
+
+    .star-counter {
+      background: var(--card);
+      border-radius: 999px;
+      padding: 0.5rem 1.1rem;
+      font-size: 1.3rem;
+      font-weight: 800;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* ---------- home screen ---------- */
+    .title {
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin: 0.5rem 0 1.8rem;
+      text-align: center;
+      text-shadow: 0 3px 0 rgba(255,255,255,0.7);
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.3rem 1.6rem;
+      border-radius: 26px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.12), 0 12px 20px rgba(0,0,0,0.1);
+      transition: transform 0.08s;
+    }
+    .menu-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 rgba(0,0,0,0.12); }
+    .menu-btn .emoji { font-size: 2.4rem; }
+    .menu-btn.consonant { background: linear-gradient(135deg, var(--sky), #4aa8ff); }
+    .menu-btn.vowel { background: linear-gradient(135deg, var(--mint), #4bc98a); }
+    .menu-btn.quiz { background: linear-gradient(135deg, var(--pink), #ff6b9e); }
+
+    /* ---------- learn screen ---------- */
+    .deck-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      opacity: 0.6;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-stage {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .nav-arrow {
+      width: 62px; height: 62px;
+      border-radius: 50%;
+      background: var(--card);
+      font-size: 1.8rem;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+    .nav-arrow:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,0.08); }
+
+    .letter-card {
+      width: min(72vw, 300px);
+      height: min(72vw, 300px);
+      background: var(--card);
+      border-radius: 40px;
+      box-shadow: 0 10px 0 rgba(0,0,0,0.08), 0 16px 28px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      animation: pop-in 0.35s ease;
+    }
+
+    @keyframes pop-in {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .letter-glyph {
+      font-size: 6.5rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .letter-emoji { font-size: 3.2rem; }
+    .letter-word { font-size: 1.6rem; font-weight: 800; }
+
+    .speaker-btn {
+      margin-top: 1.4rem;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--yellow), #ffb648);
+      font-size: 2.2rem;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.1), 0 10px 18px rgba(0,0,0,0.12);
+    }
+    .speaker-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+
+    .dots {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.4rem;
+      max-width: 320px;
+      margin-top: 1.5rem;
+    }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: rgba(58,46,92,0.2);
+    }
+    .dot.active { background: var(--purple); transform: scale(1.3); }
+
+    /* ---------- quiz screen ---------- */
+    .quiz-prompt {
+      background: var(--card);
+      border-radius: 32px;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.08), 0 12px 20px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      margin-bottom: 2rem;
+    }
+    .quiz-emoji { font-size: 4rem; }
+    .quiz-word { font-size: 1.5rem; font-weight: 800; }
+    .quiz-hint { font-size: 1rem; opacity: 0.55; font-weight: 700; }
+
+    .quiz-options {
+      display: flex;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 420px;
+    }
+
+    .option-btn {
+      width: 110px; height: 110px;
+      border-radius: 28px;
+      background: var(--card);
+      font-size: 3rem;
+      font-weight: 900;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.08), 0 10px 18px rgba(0,0,0,0.1);
+      color: var(--ink);
+    }
+    .option-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,0.08); }
+
+    .option-btn.correct {
+      background: linear-gradient(135deg, var(--mint), #4bc98a);
+      color: white;
+      animation: bounce 0.5s ease;
+    }
+    .option-btn.wrong {
+      animation: shake 0.4s ease;
+      background: #ffdde0;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      40% { transform: scale(1.15); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    .praise-banner {
+      position: fixed;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      font-size: 2.4rem;
+      font-weight: 900;
+      background: white;
+      padding: 1rem 1.8rem;
+      border-radius: 24px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 30;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .praise-banner.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    @media (max-width: 380px) {
+      .title { font-size: 1.9rem; }
+      .menu-btn { font-size: 1.25rem; padding: 1.1rem 1.3rem; }
+      .letter-glyph { font-size: 5.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button id="home-btn" class="home-btn hidden" aria-label="처음으로">🏠</button>
+    <div class="star-counter">⭐ <span id="star-count">0</span></div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+  <div id="praise-banner" class="praise-banner"></div>
+
+  <!-- 홈 화면 -->
+  <section id="screen-home" class="screen active">
+    <h1 class="title">🐣 한글 놀이터</h1>
+    <div class="menu">
+      <button id="menu-consonant" class="menu-btn consonant">
+        <span class="emoji">🦁</span> 자음 배우기
+      </button>
+      <button id="menu-vowel" class="menu-btn vowel">
+        <span class="emoji">🍦</span> 모음 배우기
+      </button>
+      <button id="menu-quiz" class="menu-btn quiz">
+        <span class="emoji">🎯</span> 짝짓기 게임
+      </button>
+    </div>
+  </section>
+
+  <!-- 학습 화면 -->
+  <section id="screen-learn" class="screen">
+    <div class="deck-label" id="deck-label"></div>
+    <div class="card-stage">
+      <button id="prev-btn" class="nav-arrow" aria-label="이전 글자">◀</button>
+      <div class="letter-card">
+        <div class="letter-glyph" id="letter-glyph"></div>
+        <div class="letter-emoji" id="letter-emoji"></div>
+        <div class="letter-word" id="letter-word"></div>
+      </div>
+      <button id="next-btn" class="nav-arrow" aria-label="다음 글자">▶</button>
+    </div>
+    <button id="speaker-btn" class="speaker-btn" aria-label="소리 듣기">🔊</button>
+    <div class="dots" id="dots"></div>
+  </section>
+
+  <!-- 퀴즈 화면 -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-prompt">
+      <div class="quiz-emoji" id="quiz-emoji"></div>
+      <div class="quiz-word" id="quiz-word"></div>
+      <div class="quiz-hint">어떤 글자로 시작할까요?</div>
+    </div>
+    <div class="quiz-options" id="quiz-options"></div>
+  </section>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // ------------------------------------------------------------- 데이터
+      const CONSONANTS = [
+        { char: "ㄱ", word: "기린", emoji: "🦒" },
+        { char: "ㄴ", word: "나비", emoji: "🦋" },
+        { char: "ㄷ", word: "다람쥐", emoji: "🐿️" },
+        { char: "ㄹ", word: "로봇", emoji: "🤖" },
+        { char: "ㅁ", word: "무지개", emoji: "🌈" },
+        { char: "ㅂ", word: "바나나", emoji: "🍌" },
+        { char: "ㅅ", word: "사자", emoji: "🦁" },
+        { char: "ㅇ", word: "오리", emoji: "🦆" },
+        { char: "ㅈ", word: "자동차", emoji: "🚗" },
+        { char: "ㅊ", word: "치타", emoji: "🐆" },
+        { char: "ㅋ", word: "코끼리", emoji: "🐘" },
+        { char: "ㅌ", word: "토끼", emoji: "🐰" },
+        { char: "ㅍ", word: "포도", emoji: "🍇" },
+        { char: "ㅎ", word: "호랑이", emoji: "🐯" },
+      ];
+
+      const VOWELS = [
+        { char: "ㅏ", word: "아이스크림", emoji: "🍦" },
+        { char: "ㅑ", word: "야구공", emoji: "⚾" },
+        { char: "ㅓ", word: "얼음", emoji: "🧊" },
+        { char: "ㅕ", word: "여우", emoji: "🦊" },
+        { char: "ㅗ", word: "오리", emoji: "🦆" },
+        { char: "ㅛ", word: "요구르트", emoji: "🥛" },
+        { char: "ㅜ", word: "우산", emoji: "☂️" },
+        { char: "ㅠ", word: "유령", emoji: "👻" },
+        { char: "ㅡ", word: "그네", emoji: "🎠" },
+        { char: "ㅣ", word: "이빨", emoji: "🦷" },
+      ];
+
+      // ------------------------------------------------------------- 상태
+      const state = {
+        deck: [],
+        index: 0,
+        stars: Number(localStorage.getItem("hangul-stars") || 0),
+        quizPool: [],
+        quizTarget: null,
+        quizLocked: false,
+      };
+
+      // ------------------------------------------------------------- 요소
+      const screens = {
+        home: document.getElementById("screen-home"),
+        learn: document.getElementById("screen-learn"),
+        quiz: document.getElementById("screen-quiz"),
+      };
+      const homeBtn = document.getElementById("home-btn");
+      const starCountEl = document.getElementById("star-count");
+      const deckLabel = document.getElementById("deck-label");
+      const letterGlyph = document.getElementById("letter-glyph");
+      const letterEmoji = document.getElementById("letter-emoji");
+      const letterWord = document.getElementById("letter-word");
+      const dotsEl = document.getElementById("dots");
+      const quizEmoji = document.getElementById("quiz-emoji");
+      const quizWord = document.getElementById("quiz-word");
+      const quizOptions = document.getElementById("quiz-options");
+      const praiseBanner = document.getElementById("praise-banner");
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      // ------------------------------------------------------------- 음성
+      let voices = [];
+      function loadVoices() {
+        voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      }
+      if (window.speechSynthesis) {
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+
+      function speak(text) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "ko-KR";
+        const koVoice = voices.find((v) => v.lang && v.lang.startsWith("ko"));
+        if (koVoice) utter.voice = koVoice;
+        utter.rate = 0.85;
+        utter.pitch = 1.15;
+        window.speechSynthesis.speak(utter);
+      }
+
+      function speakLetter(item) {
+        speak(`${item.char}! ${item.word}`);
+      }
+
+      // ------------------------------------------------------------- 사운드(성공 차임)
+      let audioCtx = null;
+      function playChime() {
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          const notes = [523.25, 659.25, 783.99];
+          notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = freq;
+            const start = audioCtx.currentTime + i * 0.12;
+            gain.gain.setValueAtTime(0, start);
+            gain.gain.linearRampToValueAtTime(0.25, start + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(start);
+            osc.stop(start + 0.4);
+          });
+        } catch (e) {
+          /* 오디오를 사용할 수 없는 환경은 조용히 넘어감 */
+        }
+      }
+
+      // ------------------------------------------------------------- 별 카운터
+      function addStars(n) {
+        state.stars += n;
+        localStorage.setItem("hangul-stars", String(state.stars));
+        starCountEl.textContent = state.stars;
+      }
+      starCountEl.textContent = state.stars;
+
+      // ------------------------------------------------------------- 화면 전환
+      function showScreen(name) {
+        Object.values(screens).forEach((s) => s.classList.remove("active"));
+        screens[name].classList.add("active");
+        homeBtn.classList.toggle("hidden", name === "home");
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      homeBtn.addEventListener("click", () => showScreen("home"));
+
+      // ------------------------------------------------------------- 학습 화면
+      function openLearn(deckName) {
+        state.deck = deckName === "consonant" ? CONSONANTS : VOWELS;
+        deckLabel.textContent = deckName === "consonant" ? "자음 배우기" : "모음 배우기";
+        state.index = 0;
+        renderDots();
+        renderCard();
+        showScreen("learn");
+      }
+
+      function renderDots() {
+        dotsEl.innerHTML = "";
+        state.deck.forEach((_, i) => {
+          const d = document.createElement("span");
+          d.className = "dot" + (i === state.index ? " active" : "");
+          dotsEl.appendChild(d);
+        });
+      }
+
+      function renderCard() {
+        const item = state.deck[state.index];
+        letterGlyph.textContent = item.char;
+        letterEmoji.textContent = item.emoji;
+        letterWord.textContent = item.word;
+        [...dotsEl.children].forEach((d, i) => d.classList.toggle("active", i === state.index));
+        speakLetter(item);
+      }
+
+      document.getElementById("prev-btn").addEventListener("click", () => {
+        state.index = (state.index - 1 + state.deck.length) % state.deck.length;
+        renderCard();
+      });
+      document.getElementById("next-btn").addEventListener("click", () => {
+        state.index = (state.index + 1) % state.deck.length;
+        renderCard();
+      });
+      document.getElementById("speaker-btn").addEventListener("click", () => {
+        speakLetter(state.deck[state.index]);
+      });
+
+      // ------------------------------------------------------------- 퀴즈 화면
+      function openQuiz() {
+        state.quizPool = [...CONSONANTS, ...VOWELS];
+        nextQuestion();
+        showScreen("quiz");
+      }
+
+      function pickDistractors(target, count) {
+        const others = state.quizPool.filter((it) => it.char !== target.char);
+        const picked = [];
+        while (picked.length < count && others.length) {
+          const idx = Math.floor(Math.random() * others.length);
+          picked.push(others.splice(idx, 1)[0]);
+        }
+        return picked;
+      }
+
+      function nextQuestion() {
+        state.quizLocked = false;
+        const target = state.quizPool[Math.floor(Math.random() * state.quizPool.length)];
+        state.quizTarget = target;
+        quizEmoji.textContent = target.emoji;
+        quizWord.textContent = target.word;
+
+        const options = [target, ...pickDistractors(target, 2)];
+        for (let i = options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+
+        quizOptions.innerHTML = "";
+        options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.textContent = opt.char;
+          btn.addEventListener("click", () => handleAnswer(btn, opt));
+          quizOptions.appendChild(btn);
+        });
+
+        speak(`${target.word}! 어떤 글자로 시작할까요?`);
+      }
+
+      function handleAnswer(btn, opt) {
+        if (state.quizLocked) return;
+        if (opt.char === state.quizTarget.char) {
+          state.quizLocked = true;
+          btn.classList.add("correct");
+          addStars(1);
+          playChime();
+          showPraise();
+          speak(pickPraise());
+          setTimeout(nextQuestion, 1400);
+        } else {
+          btn.classList.add("wrong");
+          speak("다시 해볼까요?");
+          setTimeout(() => btn.classList.remove("wrong"), 400);
+        }
+      }
+
+      const PRAISES = ["잘했어요!", "최고예요!", "정답이에요!", "우와 대단해요!"];
+      function pickPraise() {
+        return PRAISES[Math.floor(Math.random() * PRAISES.length)];
+      }
+
+      function showPraise() {
+        praiseBanner.textContent = "⭐ " + pickPraise();
+        praiseBanner.classList.add("show");
+        burstConfetti();
+        setTimeout(() => praiseBanner.classList.remove("show"), 1100);
+      }
+
+      // ------------------------------------------------------------- 컨페티
+      const CONFETTI_COLORS = ["#ff8fb3", "#ffd166", "#6ec6ff", "#8fe3b0", "#b28dff"];
+      let particles = [];
+      let rafId = null;
+
+      function burstConfetti() {
+        for (let i = 0; i < 60; i++) {
+          particles.push({
+            x: canvas.width / 2,
+            y: canvas.height * 0.4,
+            vx: (Math.random() - 0.5) * 12,
+            vy: Math.random() * -10 - 4,
+            size: Math.random() * 8 + 4,
+            color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+            rotation: Math.random() * Math.PI * 2,
+            vr: (Math.random() - 0.5) * 0.3,
+            life: 0,
+          });
+        }
+        if (!rafId) animateConfetti();
+      }
+
+      function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p) => {
+          p.vy += 0.35;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rotation += p.vr;
+          p.life += 1;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        });
+        particles = particles.filter((p) => p.life < 120 && p.y < canvas.height + 40);
+        if (particles.length) {
+          rafId = requestAnimationFrame(animateConfetti);
+        } else {
+          rafId = null;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      // ------------------------------------------------------------- 메뉴 버튼
+      document.getElementById("menu-consonant").addEventListener("click", () => openLearn("consonant"));
+      document.getElementById("menu-vowel").addEventListener("click", () => openLearn("vowel"));
+      document.getElementById("menu-quiz").addEventListener("click", openQuiz);
+
+      showScreen("home");
+    })();
+  </script>
+</body>
+</html>
