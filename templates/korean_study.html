@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>초등 한글 학습</title>
+  <link rel="stylesheet" href="/static/korean-study.css">
+</head>
+<body>
+  <div class="topbar">
+    <h1>📖 초등 한글 학습</h1>
+    <a href="/" class="home-link">← 할일 관리로</a>
+  </div>
+
+  <main>
+    <!-- 홈: 학년/레벨 선택 -->
+    <section id="screen-home" class="screen active">
+      <div class="stamp-board">
+        <h3>이번 주 학습 스탬프</h3>
+        <div class="stamp-row" id="stamp-row"></div>
+      </div>
+      <div class="band-tabs" id="band-tabs"></div>
+      <div class="level-grid" id="level-grid"></div>
+    </section>
+
+    <!-- 학습(카드) 화면 -->
+    <section id="screen-learn" class="screen">
+      <button class="btn secondary" id="back-home-from-learn">← 레벨 목록</button>
+      <h2 id="learn-title" style="text-align:center;"></h2>
+      <div class="card-deck">
+        <div class="word-card">
+          <div class="word-emoji" id="word-emoji"></div>
+          <div class="word-text" id="word-text"></div>
+          <div class="word-meaning" id="word-meaning"></div>
+        </div>
+        <button class="speak-btn" id="card-speak-btn">🔊</button>
+        <div class="progress-dots" id="card-dots"></div>
+        <div class="nav-row">
+          <button class="btn secondary" id="prev-card-btn">◀ 이전</button>
+          <button class="btn" id="next-card-btn">다음 낱말 ▶</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 시험(퀴즈) 화면 -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-box">
+        <div class="quiz-count" id="quiz-count"></div>
+        <div id="quiz-body"></div>
+      </div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section id="screen-result" class="screen">
+      <div class="quiz-box result-box">
+        <h2>레벨 결과</h2>
+        <div class="result-stars" id="result-stars"></div>
+        <div class="result-score" id="result-score"></div>
+        <p class="result-msg" id="result-msg"></p>
+        <button class="btn wide" id="retry-btn">다시 도전하기</button>
+        <button class="btn wide secondary" id="back-home-from-result">레벨 목록으로</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/korean-study-data.js"></script>
+  <script src="/static/korean-study.js"></script>
+</body>
+</html>
