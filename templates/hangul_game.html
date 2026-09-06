@@ -28,6 +28,9 @@
       <button id="menu-quiz" class="menu-btn quiz">
         <span class="emoji">🎯</span> 짝짓기 게임
       </button>
+      <button id="menu-word" class="menu-btn word">
+        <span class="emoji">🔤</span> 단어 만들기
+      </button>
     </div>
   </section>
 
@@ -55,6 +58,18 @@
       <div class="quiz-hint">어떤 글자로 시작할까요?</div>
     </div>
     <div class="quiz-options" id="quiz-options"></div>
+  </section>
+
+  <!-- 단어 만들기 화면 -->
+  <section id="screen-word" class="screen">
+    <div class="word-target">
+      <span class="word-target-emoji" id="word-target-emoji"></span>
+      <button id="word-speaker-btn" class="speaker-btn" aria-label="소리 듣기" style="margin-top:0;">🔊</button>
+    </div>
+    <div class="syllable-boxes" id="syllable-boxes"></div>
+    <div class="word-result" id="word-result"></div>
+    <div class="word-step-hint" id="word-step-hint"></div>
+    <div class="quiz-options" id="word-options"></div>
   </section>
 
   <script src="/static/hangul-game.js"></script>

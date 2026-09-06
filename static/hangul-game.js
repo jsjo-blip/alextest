@@ -32,6 +32,49 @@
     { char: "ㅣ", word: "이빨", emoji: "🦷" },
   ];
 
+  // ------------------------------------------------------------- 단어 만들기 (레벨 1)
+  // 레벨 1: 받침 없이, 기본 자음 14개 + 기본 모음 10개로만 이루어진 2글자 낱말
+  const WORDS_LEVEL1 = [
+    { word: "나비", emoji: "🦋" },
+    { word: "거미", emoji: "🕷️" },
+    { word: "다리", emoji: "🦵" },
+    { word: "모자", emoji: "🧢" },
+    { word: "바지", emoji: "👖" },
+    { word: "버스", emoji: "🚌" },
+    { word: "비누", emoji: "🧼" },
+    { word: "사자", emoji: "🦁" },
+    { word: "아기", emoji: "👶" },
+    { word: "오리", emoji: "🦆" },
+    { word: "우유", emoji: "🥛" },
+    { word: "가지", emoji: "🍆" },
+    { word: "기차", emoji: "🚂" },
+    { word: "포도", emoji: "🍇" },
+    { word: "포크", emoji: "🍴" },
+    { word: "하마", emoji: "🦛" },
+    { word: "고추", emoji: "🌶️" },
+  ];
+
+  // 유니코드 한글 음절 = (초성 * 21 + 중성) * 28 + 종성 + 0xAC00 규칙을 이용한 조합/분해
+  const FULL_CHO = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+  const FULL_JUNG = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"];
+  const FULL_JONG = ["", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+
+  function decomposeSyllable(ch) {
+    const code = ch.codePointAt(0) - 0xac00;
+    const cho = Math.floor(code / (21 * 28));
+    const jung = Math.floor((code % (21 * 28)) / 28);
+    const jong = code % 28;
+    return { cho: FULL_CHO[cho], jung: FULL_JUNG[jung], jong: FULL_JONG[jong] };
+  }
+
+  function composeSyllable(cho, jung, jong = "") {
+    const choIdx = FULL_CHO.indexOf(cho);
+    const jungIdx = FULL_JUNG.indexOf(jung);
+    const jongIdx = FULL_JONG.indexOf(jong);
+    const code = 0xac00 + (choIdx * 21 + jungIdx) * 28 + jongIdx;
+    return String.fromCodePoint(code);
+  }
+
   // ------------------------------------------------------------- 상태
   const state = {
     deck: [],
@@ -40,6 +83,11 @@
     quizPool: [],
     quizTarget: null,
     quizLocked: false,
+    wordTarget: null,
+    wordSyllables: [],
+    wordStep: 0,
+    wordLocked: false,
+    lastWordIndex: -1,
   };
 
   // ------------------------------------------------------------- 요소
@@ -47,6 +95,7 @@
     home: document.getElementById("screen-home"),
     learn: document.getElementById("screen-learn"),
     quiz: document.getElementById("screen-quiz"),
+    word: document.getElementById("screen-word"),
   };
   const homeBtn = document.getElementById("home-btn");
   const starCountEl = document.getElementById("star-count");
@@ -59,6 +108,11 @@
   const quizWord = document.getElementById("quiz-word");
   const quizOptions = document.getElementById("quiz-options");
   const praiseBanner = document.getElementById("praise-banner");
+  const wordTargetEmoji = document.getElementById("word-target-emoji");
+  const syllableBoxesEl = document.getElementById("syllable-boxes");
+  const wordResultEl = document.getElementById("word-result");
+  const wordStepHint = document.getElementById("word-step-hint");
+  const wordOptions = document.getElementById("word-options");
   const canvas = document.getElementById("confetti-canvas");
   const ctx = canvas.getContext("2d");
 
@@ -294,10 +348,135 @@
     }
   }
 
+  // ------------------------------------------------------------- 단어 만들기 화면
+  function pickWord() {
+    if (WORDS_LEVEL1.length === 1) return WORDS_LEVEL1[0];
+    let idx;
+    do {
+      idx = Math.floor(Math.random() * WORDS_LEVEL1.length);
+    } while (idx === state.lastWordIndex);
+    state.lastWordIndex = idx;
+    return WORDS_LEVEL1[idx];
+  }
+
+  function openWordGame() {
+    state.wordLocked = false;
+    const target = pickWord();
+    state.wordTarget = target;
+    state.wordSyllables = [...target.word].map((ch) => {
+      const { cho, jung } = decomposeSyllable(ch);
+      return { cho, jung, choPicked: null, jungPicked: null };
+    });
+    state.wordStep = 0;
+
+    wordTargetEmoji.textContent = target.emoji;
+    wordResultEl.textContent = "";
+    renderSyllableBoxes();
+    nextWordStep();
+    showScreen("word");
+    speak(`${target.word}! 이 낱말을 만들어봐요.`);
+  }
+
+  function renderSyllableBoxes() {
+    syllableBoxesEl.innerHTML = "";
+    state.wordSyllables.forEach((syl) => {
+      const box = document.createElement("div");
+      box.className = "syllable-box";
+      if (syl.choPicked && syl.jungPicked) {
+        box.textContent = composeSyllable(syl.choPicked, syl.jungPicked);
+        box.classList.add("filled");
+      } else if (syl.choPicked) {
+        box.textContent = syl.choPicked;
+        box.classList.add("filled");
+      }
+      syllableBoxesEl.appendChild(box);
+    });
+  }
+
+  function pickWordDistractors(pool, target, count) {
+    const others = pool.filter((c) => c !== target);
+    const picked = [];
+    while (picked.length < count && others.length) {
+      const idx = Math.floor(Math.random() * others.length);
+      picked.push(others.splice(idx, 1)[0]);
+    }
+    return picked;
+  }
+
+  function nextWordStep() {
+    state.wordLocked = false;
+    const totalSteps = state.wordSyllables.length * 2;
+    if (state.wordStep >= totalSteps) {
+      completeWord();
+      return;
+    }
+    const syllableIdx = Math.floor(state.wordStep / 2);
+    const isVowelStep = state.wordStep % 2 === 1;
+    const syl = state.wordSyllables[syllableIdx];
+    const target = isVowelStep ? syl.jung : syl.cho;
+    const pool = isVowelStep ? VOWELS.map((v) => v.char) : CONSONANTS.map((c) => c.char);
+
+    wordStepHint.textContent = isVowelStep ? "어떤 모음일까요?" : "어떤 자음일까요?";
+
+    const choices = [target, ...pickWordDistractors(pool, target, 2)];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+
+    wordOptions.innerHTML = "";
+    choices.forEach((choice) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = choice;
+      btn.addEventListener("click", () => handleWordAnswer(btn, choice, target, syllableIdx, isVowelStep));
+      wordOptions.appendChild(btn);
+    });
+  }
+
+  function handleWordAnswer(btn, choice, target, syllableIdx, isVowelStep) {
+    if (state.wordLocked) return;
+    if (choice === target) {
+      state.wordLocked = true;
+      btn.classList.add("correct");
+      const syl = state.wordSyllables[syllableIdx];
+      if (isVowelStep) {
+        syl.jungPicked = choice;
+      } else {
+        syl.choPicked = choice;
+      }
+      renderSyllableBoxes();
+      playChime();
+      state.wordStep += 1;
+      setTimeout(nextWordStep, 500);
+    } else {
+      btn.classList.add("wrong");
+      setTimeout(() => btn.classList.remove("wrong"), 400);
+    }
+  }
+
+  function completeWord() {
+    const target = state.wordTarget;
+    wordOptions.innerHTML = "";
+    wordStepHint.textContent = "";
+    wordResultEl.textContent = target.word;
+    [...syllableBoxesEl.children].forEach((box) => box.classList.add("complete"));
+    addStars(1);
+    playChime();
+    showPraise();
+    speak(`${target.word}! ${pickPraise()}`);
+    setTimeout(openWordGame, 1800);
+  }
+
+  document.getElementById("word-speaker-btn").addEventListener("click", () => {
+    if (state.wordTarget) speak(state.wordTarget.word);
+  });
+
   // ------------------------------------------------------------- 메뉴 버튼
   document.getElementById("menu-consonant").addEventListener("click", () => openLearn("consonant"));
   document.getElementById("menu-vowel").addEventListener("click", () => openLearn("vowel"));
   document.getElementById("menu-quiz").addEventListener("click", openQuiz);
+  document.getElementById("menu-word").addEventListener("click", openWordGame);
 
   showScreen("home");
 })();
