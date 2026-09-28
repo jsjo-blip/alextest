@@ -10,7 +10,9 @@ Features:
 """
 
 from datetime import date, datetime
+import json
 import logging
+from pathlib import Path
 
 from flask import Flask, request, jsonify, redirect, render_template
 
@@ -31,6 +33,20 @@ def index():
 @app.route("/hangul-game")
 def hangul_game():
     return render_template("hangul_game.html")
+
+
+FUND_DIR = Path(__file__).parent / "fund_calendar"
+
+
+@app.route("/fund-calendar")
+def fund_calendar():
+    """자금 캘린더. fund_calendar/data/fund-data.json 이 있으면 내장해서 보여준다."""
+    page = (FUND_DIR / "index.html").read_text(encoding="utf-8")
+    data_file = FUND_DIR / "data" / "fund-data.json"
+    if data_file.exists():
+        payload = json.dumps(json.loads(data_file.read_text(encoding="utf-8")), ensure_ascii=False)
+        page = page.replace("/*__FUND_DATA__*/null", payload.replace("</", "<\\/"))
+    return '<!doctype html><html lang="ko"><meta charset="utf-8">' + page
 
 
 # ---------------------------------------------------------------- todos CRUD

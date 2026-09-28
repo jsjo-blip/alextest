@@ -61,3 +61,27 @@ export GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback  # 기본�
 | POST | `/api/sync/tasks` | 구글 Tasks 가져오기 |
 | POST | `/api/todos/<id>/push/calendar` | 할일을 구글 캘린더 일정으로 내보내기 |
 | POST | `/api/todos/<id>/push/tasks` | 할일을 구글 Tasks로 내보내기 |
+
+## 자금 캘린더 (`/fund-calendar`)
+
+구글 시트 「자금 현황 보고」의 `매출_YYMM` · `지출_YYMM` · `자금현황_YYMM` 시트를 읽어 법인별 월간 자금 캘린더를 보여줍니다.
+
+- 매출은 `입금일`에 `당월입금` 금액으로 입금(+), 지출은 `지급일`에 `실지급액`으로 출금(−) 표시합니다.
+- **품의번호(`품의No`)가 있으면 확정(채움), 없으면 추정(점선 테두리)** 으로 구분하고 KPI에도 확정/추정 합계를 나눠 보여줍니다.
+- 기준일까지는 `자금현황` 시트의 일별 가용자금을, 그 다음 날부터는 기준 잔고 ± 달력의 입·출금으로 잔고를 계산합니다. 기준일·기준 잔고·경고 잔고는 "잔고 기준 설정"에서 바꿀 수 있습니다.
+- 달력/목록 보기, 법인·월 이동, 원/천원/백만원 단위, 확정·추정·입금·출금 필터, 검색, 끌어서 날짜 이동, 클릭 수정, 항목 추가, 되돌리기를 지원합니다. 편집 내용은 브라우저에만 저장되며 원본 시트는 바뀌지 않습니다.
+- 날짜가 없거나 해당 월 밖인 항목은 오른쪽 "날짜 없음·기간 외" 칸에 모입니다.
+
+회사 자금 데이터는 저장소에 커밋하지 않습니다(`fund_calendar/data/`는 `.gitignore`). 쓰는 방법은 둘 중 하나입니다.
+
+1. 페이지의 **파일 → 엑셀(xlsx) 불러오기**로 시트에서 받은 xlsx를 직접 엽니다(브라우저 안에서만 읽음).
+2. 서버에 데이터를 넣어 둡니다.
+
+```bash
+pip install openpyxl
+python fund_calendar/extract_data.py 자금현황.xlsx -o fund_calendar/data/fund-data.json
+# 데이터가 내장된 단일 HTML이 필요하면
+python fund_calendar/extract_data.py 자금현황.xlsx --embed fund_calendar/data/fund-calendar.html
+```
+
+추출 시 은행·계좌번호·예금주 컬럼은 버립니다.

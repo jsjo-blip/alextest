@@ -3,3 +3,4 @@ __pycache__/
 todos.db
 token.json
 .env
+fund_calendar/data/
