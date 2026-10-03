@@ -1,0 +1,62 @@
+{
+  "intervals_by_box": {
+    "0": 1,
+    "1": 2,
+    "2": 4,
+    "3": 7,
+    "4": 15,
+    "5": 30
+  },
+  "expressions": [
+    {
+      "id": "face-headwinds",
+      "expression": "face (stiff) headwinds",
+      "meaning_ko": "(사업·경제가) 역풍/불리한 여건에 직면하다",
+      "introduced": "2026-10-03",
+      "box": 0,
+      "next_review": "2026-10-04",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "price-in",
+      "expression": "price in (sth)",
+      "meaning_ko": "(시장이 사건·전망을) 가격에 이미 반영하다",
+      "introduced": "2026-10-03",
+      "box": 0,
+      "next_review": "2026-10-04",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "tighten-purse-strings",
+      "expression": "tighten the purse strings",
+      "meaning_ko": "지출을 줄이다, 허리띠를 졸라매다",
+      "introduced": "2026-10-03",
+      "box": 0,
+      "next_review": "2026-10-04",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "war-chest",
+      "expression": "war chest",
+      "meaning_ko": "(인수·위기 대응용) 비축 자금",
+      "introduced": "2026-10-03",
+      "box": 0,
+      "next_review": "2026-10-04",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "hedge-bets",
+      "expression": "hedge one's bets",
+      "meaning_ko": "위험을 분산하다, 양다리를 걸치다",
+      "introduced": "2026-10-03",
+      "box": 0,
+      "next_review": "2026-10-04",
+      "last_tested": null,
+      "history": []
+    }
+  ]
+}
