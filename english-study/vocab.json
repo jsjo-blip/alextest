@@ -57,6 +57,56 @@
       "next_review": "2026-10-04",
       "last_tested": null,
       "history": []
+    },
+    {
+      "id": "burn-rate",
+      "expression": "burn rate",
+      "meaning_ko": "(스타트업의) 월간 현금 소진 속도",
+      "introduced": "2026-10-04",
+      "box": 0,
+      "next_review": "2026-10-05",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "down-round",
+      "expression": "down round",
+      "meaning_ko": "이전 라운드보다 낮은 기업가치의 투자",
+      "introduced": "2026-10-04",
+      "box": 0,
+      "next_review": "2026-10-05",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "drive-hard-bargain",
+      "expression": "drive a hard bargain",
+      "meaning_ko": "협상에서 강하게 밀어붙이다",
+      "introduced": "2026-10-04",
+      "box": 0,
+      "next_review": "2026-10-05",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "sticking-point",
+      "expression": "sticking point",
+      "meaning_ko": "협상의 걸림돌, 쟁점",
+      "introduced": "2026-10-04",
+      "box": 0,
+      "next_review": "2026-10-05",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "leave-money-on-table",
+      "expression": "leave money on the table",
+      "meaning_ko": "더 얻을 수 있었던 이익을 놓치다",
+      "introduced": "2026-10-04",
+      "box": 0,
+      "next_review": "2026-10-05",
+      "last_tested": null,
+      "history": []
     }
   ]
 }
