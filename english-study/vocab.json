@@ -107,6 +107,56 @@
       "next_review": "2026-10-05",
       "last_tested": null,
       "history": []
+    },
+    {
+      "id": "soft-landing",
+      "expression": "soft landing",
+      "meaning_ko": "경제 연착륙",
+      "introduced": "2026-10-05",
+      "box": 0,
+      "next_review": "2026-10-06",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "hawkish-dovish-tone",
+      "expression": "strike a hawkish / dovish tone",
+      "meaning_ko": "매파적/비둘기파적 기조를 보이다",
+      "introduced": "2026-10-05",
+      "box": 0,
+      "next_review": "2026-10-06",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "knock-on-effect",
+      "expression": "knock-on effect",
+      "meaning_ko": "연쇄 효과, 파급 효과",
+      "introduced": "2026-10-05",
+      "box": 0,
+      "next_review": "2026-10-06",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "stoke-inflation",
+      "expression": "stoke inflation",
+      "meaning_ko": "인플레이션을 부추기다",
+      "introduced": "2026-10-05",
+      "box": 0,
+      "next_review": "2026-10-06",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "keep-powder-dry",
+      "expression": "keep one's powder dry",
+      "meaning_ko": "자금을 아껴두고 때를 기다리다",
+      "introduced": "2026-10-05",
+      "box": 0,
+      "next_review": "2026-10-06",
+      "last_tested": null,
+      "history": []
     }
   ]
 }
