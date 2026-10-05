@@ -157,6 +157,56 @@
       "next_review": "2026-10-06",
       "last_tested": null,
       "history": []
+    },
+    {
+      "id": "beat-estimates",
+      "expression": "beat / miss estimates",
+      "meaning_ko": "시장 예상치를 웃돌다/밑돌다",
+      "introduced": "2026-10-06",
+      "box": 0,
+      "next_review": "2026-10-07",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "write-down",
+      "expression": "write-down / write down",
+      "meaning_ko": "자산 가치의 감액, 상각",
+      "introduced": "2026-10-06",
+      "box": 0,
+      "next_review": "2026-10-07",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "bottom-line",
+      "expression": "bottom line",
+      "meaning_ko": "순이익, 최종 결과; 핵심",
+      "introduced": "2026-10-06",
+      "box": 0,
+      "next_review": "2026-10-07",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "cook-books",
+      "expression": "cook the books",
+      "meaning_ko": "장부를 조작하다, 분식회계",
+      "introduced": "2026-10-06",
+      "box": 0,
+      "next_review": "2026-10-07",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "paper-over-cracks",
+      "expression": "paper over the cracks",
+      "meaning_ko": "문제를 임시로 덮다",
+      "introduced": "2026-10-06",
+      "box": 0,
+      "next_review": "2026-10-07",
+      "last_tested": null,
+      "history": []
     }
   ]
 }
