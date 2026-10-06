@@ -207,6 +207,56 @@
       "next_review": "2026-10-07",
       "last_tested": null,
       "history": []
+    },
+    {
+      "id": "stick-to-knitting",
+      "expression": "stick to one's knitting",
+      "meaning_ko": "본업에 집중하다",
+      "introduced": "2026-10-07",
+      "box": 0,
+      "next_review": "2026-10-08",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "low-hanging-fruit",
+      "expression": "low-hanging fruit",
+      "meaning_ko": "쉽게 얻을 수 있는 성과",
+      "introduced": "2026-10-07",
+      "box": 0,
+      "next_review": "2026-10-08",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "economies-of-scale",
+      "expression": "economies of scale",
+      "meaning_ko": "규모의 경제",
+      "introduced": "2026-10-07",
+      "box": 0,
+      "next_review": "2026-10-08",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "move-the-needle",
+      "expression": "move the needle",
+      "meaning_ko": "의미 있는 변화를 만들다",
+      "introduced": "2026-10-07",
+      "box": 0,
+      "next_review": "2026-10-08",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "double-down-on",
+      "expression": "double down on",
+      "meaning_ko": "~에 더 집중·투자하다",
+      "introduced": "2026-10-07",
+      "box": 0,
+      "next_review": "2026-10-08",
+      "last_tested": null,
+      "history": []
     }
   ]
 }
