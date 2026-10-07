@@ -257,6 +257,56 @@
       "next_review": "2026-10-08",
       "last_tested": null,
       "history": []
+    },
+    {
+      "id": "ramp-up",
+      "expression": "ramp up",
+      "meaning_ko": "단계적으로 늘리다, 증산하다",
+      "introduced": "2026-10-08",
+      "box": 0,
+      "next_review": "2026-10-09",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "on-the-back-of",
+      "expression": "on the back of",
+      "meaning_ko": "~에 힘입어",
+      "introduced": "2026-10-08",
+      "box": 0,
+      "next_review": "2026-10-09",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "bottleneck",
+      "expression": "bottleneck",
+      "meaning_ko": "병목, 걸림돌이 되는 지점",
+      "introduced": "2026-10-08",
+      "box": 0,
+      "next_review": "2026-10-09",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "reshoring",
+      "expression": "reshoring / reshore",
+      "meaning_ko": "생산시설의 자국 복귀",
+      "introduced": "2026-10-08",
+      "box": 0,
+      "next_review": "2026-10-09",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "pass-on-costs",
+      "expression": "pass on (costs) to",
+      "meaning_ko": "비용 상승분을 전가하다",
+      "introduced": "2026-10-08",
+      "box": 0,
+      "next_review": "2026-10-09",
+      "last_tested": null,
+      "history": []
     }
   ]
 }
