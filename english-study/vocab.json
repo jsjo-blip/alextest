@@ -307,6 +307,56 @@
       "next_review": "2026-10-09",
       "last_tested": null,
       "history": []
+    },
+    {
+      "id": "cash-cow",
+      "expression": "cash cow",
+      "meaning_ko": "효자 상품·사업, 캐시카우",
+      "introduced": "2026-10-09",
+      "box": 0,
+      "next_review": "2026-10-10",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "eat-into",
+      "expression": "eat into",
+      "meaning_ko": "잠식하다, 갉아먹다",
+      "introduced": "2026-10-09",
+      "box": 0,
+      "next_review": "2026-10-10",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "price-war",
+      "expression": "price war",
+      "meaning_ko": "가격 전쟁, 출혈 경쟁",
+      "introduced": "2026-10-09",
+      "box": 0,
+      "next_review": "2026-10-10",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "cannibalize",
+      "expression": "cannibalize (sales)",
+      "meaning_ko": "자사 기존 제품 매출을 잠식하다",
+      "introduced": "2026-10-09",
+      "box": 0,
+      "next_review": "2026-10-10",
+      "last_tested": null,
+      "history": []
+    },
+    {
+      "id": "gain-traction",
+      "expression": "gain traction",
+      "meaning_ko": "호응을 얻다, 자리를 잡아가다",
+      "introduced": "2026-10-09",
+      "box": 0,
+      "next_review": "2026-10-10",
+      "last_tested": null,
+      "history": []
     }
   ]
 }
