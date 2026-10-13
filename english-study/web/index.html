@@ -200,6 +200,19 @@ h3 { font-size: 15px; margin: 0 0 10px; }
   const dueCount = () => vocabList().filter((v) => v.next_review && v.next_review <= today()).length;
   const pendingTests = () => testList().filter((t) => !t.submitted);
   const pct = (t) => (t.total ? Math.round((t.score / t.total) * 100) : 0);
+  // backlog control: how many new expressions tomorrow's story may add
+  const TIERS = [
+    { max: 15, name: "정상", rule: (n) => n },
+    { max: 25, name: "감속", rule: (n) => Math.max(2, n - 2) },
+    { max: 35, name: "복습 집중", rule: () => 2 },
+    { max: Infinity, name: "복습 전용", rule: () => 0 },
+  ];
+  function backlogPlan() {
+    const due = dueCount(), pend = pendingTests().length;
+    let tier = TIERS.findIndex((t) => due <= t.max);
+    if (pend >= 3 && tier < TIERS.length - 1) tier++;
+    return { due, pend, tier, name: TIERS[tier].name, newCount: TIERS[tier].rule(level().perDay), weekendQ: due > 20 ? 15 : 10 };
+  }
 
   function reviewMatcher(ids) {
     const keys = ids.map((id) => S.vocab[id]?.expression || id.replace(/-/g, " "))
@@ -385,6 +398,7 @@ h3 { font-size: 15px; margin: 0 0 10px; }
     const recentAvg = recent.length ? Math.round(recent.reduce((s, t) => s + pct(t), 0) / recent.length) : null;
     const lv = level(), m = S.meta || {};
     const mastered = vocabList().filter((v) => (v.box || 0) >= 4).length;
+    const plan = backlogPlan();
     $("#view").innerHTML = `
       <div class="stack">
         <div class="stats">
@@ -392,7 +406,19 @@ h3 { font-size: 15px; margin: 0 0 10px; }
           <div class="stat"><div class="v">${streak}</div><div class="l">연속 학습일</div></div>
           <div class="stat"><div class="v">${totQ ? Math.round((totC / totQ) * 100) + "%" : "–"}</div><div class="l">전체 정답률 (${subs.length}회)</div></div>
           <div class="stat"><div class="v">${mastered}<span class="muted" style="font-size:14px">/${vocabList().length}</span></div><div class="l">마스터한 표현</div></div>
+          <div class="stat"><div class="v" style="color:${plan.tier >= 2 ? "var(--review)" : "inherit"}">${plan.due}</div><div class="l">복습 대기 · ${plan.name}</div></div>
         </div>
+        <section class="card">
+          <h3>복습 대기 관리</h3>
+          <p style="margin:0 0 10px">지금 복습할 차례인 표현 <b class="num">${plan.due}개</b>, 미응시 테스트 <b class="num">${plan.pend}개</b> → 다음 평일 스토리의 새 표현 <b class="num">${plan.newCount}개</b>, 주말 복습 <b class="num">${plan.weekendQ}문항</b></p>
+          <div class="tablewrap"><table class="ledger"><thead><tr><th>복습 대기</th><th>단계</th><th>새 표현 수</th></tr></thead><tbody>
+            <tr${plan.tier === 0 ? ' style="font-weight:600"' : ""}><td class="num">15개 이하</td><td>정상</td><td>레벨 기본 (Lv.${level().n}: ${level().perDay}개)</td></tr>
+            <tr${plan.tier === 1 ? ' style="font-weight:600"' : ""}><td class="num">16~25개</td><td>감속</td><td>기본보다 2개 적게 (최소 2개)</td></tr>
+            <tr${plan.tier === 2 ? ' style="font-weight:600"' : ""}><td class="num">26~35개</td><td>복습 집중</td><td>2개, 스토리에 복습 표현 4개</td></tr>
+            <tr${plan.tier === 3 ? ' style="font-weight:600"' : ""}><td class="num">36개 이상</td><td>복습 전용</td><td>0개, 복습 표현으로만 스토리</td></tr>
+          </tbody></table></div>
+          <p class="muted" style="font-size:13px;margin:10px 0 0">미응시 테스트가 3개 이상이면 한 단계 더 보수적으로 적용합니다. 주말 복습은 대기 20개 초과 시 15문항으로 늘립니다.</p>
+        </section>
         <section class="card">
           <h3>학습 레벨</h3>
           <div class="levels">${LEVELS.map((l) => `<div class="lv ${l.n === lv.n ? "cur" : ""}"><span class="n">Lv.${l.n}</span><span><b>${l.name}</b> <span class="muted">· ${l.ko}</span></span><span class="muted num">새 표현 ${l.perDay}개/일</span></div>`).join("")}</div>
