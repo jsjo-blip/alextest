@@ -86,6 +86,9 @@ h3 { font-size: 15px; margin: 0 0 10px; }
 .tlist { display: grid; gap: 8px; }
 .titem { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); cursor: pointer; font: inherit; color: inherit; text-align: left; width: 100%; }
 .titem[aria-pressed="true"] { border-color: var(--accent); }
+h3.sub { font-size: 14px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+details.past > summary { cursor: pointer; font-weight: 600; color: var(--muted); padding: 10px 2px; list-style-position: inside; }
+details.past[open] > summary { margin-bottom: 8px; }
 .state { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .state.todo { background: var(--review-soft); color: var(--review); }
 .state.ok { background: var(--good-soft); color: var(--good); }
@@ -178,7 +181,7 @@ h3 { font-size: 15px; margin: 0 0 10px; }
 
   const S = { days: {}, vocab: {}, tests: {}, meta: null, loaded: new Set(),
     tab: "today", day: null, test: null, vfilter: "due", db: null, saving: false,
-    drafts: {}, phase: {}, self: {} };
+    drafts: {}, phase: {}, self: {}, showDone: false };
 
   const $ = (s, r = document) => r.querySelector(s);
   const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -292,14 +295,22 @@ h3 { font-size: 15px; margin: 0 0 10px; }
     if (!list.length) { $("#view").innerHTML = `<div class="card empty">아직 테스트가 없습니다. 매일 밤 9시에 올라옵니다.</div>`; return; }
     if (!S.test || !S.tests[S.test]) S.test = (pendingTests().pop() || list[0]).date;
     const t = S.tests[S.test];
-    $("#view").innerHTML = `
-      <div class="stack">
-        <div class="tlist">${list.map((x) => `
+    const item = (x) => `
           <button class="titem" data-test="${x.date}" aria-pressed="${x.date === S.test}">
             <span><b>${fmt(x.date)}</b> <span class="muted">${x.kind === "weekend" ? "주말 복습" : "데일리"} · ${x.questions.length}문항</span></span>${stateTag(x)}
-          </button>`).join("")}
+          </button>`;
+    const todo = list.filter((x) => !x.submitted), done = list.filter((x) => x.submitted);
+    $("#view").innerHTML = `
+      <div class="stack">
+        <div>
+          <h3 class="sub">풀 테스트 <span class="num">${todo.length}</span></h3>
+          ${todo.length ? `<div class="tlist">${todo.map(item).join("")}</div>` : `<p class="muted" style="margin:0">밀린 테스트가 없어요. 👍</p>`}
         </div>
         <section class="card" id="testCard">${testBody(t)}</section>
+        ${done.length ? `<details class="past" id="pastTests" ${S.showDone ? "open" : ""}>
+          <summary>지난 테스트 <span class="num">${done.length}</span>개</summary>
+          <div class="tlist">${done.map(item).join("")}</div>
+        </details>` : ""}
       </div>`;
   }
 
@@ -476,11 +487,13 @@ h3 { font-size: 15px; margin: 0 0 10px; }
     S.saving = false; render();
   }
 
+  document.addEventListener("toggle", (e) => { if (e.target.id === "pastTests") S.showDone = e.target.open; }, true);
+
   document.addEventListener("click", (e) => {
     const el = e.target.closest("button"); if (!el) return;
     if (el.dataset.tab) { S.tab = el.dataset.tab; render(); window.scrollTo(0, 0); }
     else if (el.dataset.day) { S.day = el.dataset.day; render(); }
-    else if (el.dataset.test) { S.test = el.dataset.test; render(); }
+    else if (el.dataset.test) { S.test = el.dataset.test; render(); if (S.tests[S.test]?.submitted) $("#testCard").scrollIntoView({ block: "start" }); }
     else if (el.dataset.gotoTest) { S.test = el.dataset.gotoTest; S.tab = "tests"; render(); window.scrollTo(0, 0); }
     else if (el.dataset.vf) { S.vfilter = el.dataset.vf; render(); }
     else if (el.dataset.self) { (S.self[S.test] ||= {})[el.dataset.self] = el.dataset.v === "1"; $("#testCard").innerHTML = testBody(S.tests[S.test]); }
