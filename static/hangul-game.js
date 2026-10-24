@@ -108,6 +108,7 @@
   const quizWord = document.getElementById("quiz-word");
   const quizOptions = document.getElementById("quiz-options");
   const praiseBanner = document.getElementById("praise-banner");
+  const voiceNoticeEl = document.getElementById("voice-notice");
   const wordTargetEmoji = document.getElementById("word-target-emoji");
   const syllableBoxesEl = document.getElementById("syllable-boxes");
   const wordResultEl = document.getElementById("word-result");
@@ -125,24 +126,80 @@
 
   // ------------------------------------------------------------- 음성
   let voices = [];
+  let resolveVoicesReady;
+  const voicesReady = new Promise((resolve) => {
+    resolveVoicesReady = resolve;
+  });
+
   function loadVoices() {
     voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (voices.length) resolveVoicesReady();
   }
   if (window.speechSynthesis) {
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
+    // 일부 브라우저는 voiceschanged를 끝내 발생시키지 않으므로, 음성을
+    // 영영 기다리지 않도록 짧은 시간 뒤에는 그냥 진행한다.
+    setTimeout(resolveVoicesReady, 300);
+  } else {
+    resolveVoicesReady();
+  }
+
+  let voiceNoticeShown = false;
+  function maybeShowVoiceNotice() {
+    if (voiceNoticeShown || !voiceNoticeEl) return;
+    voiceNoticeShown = true;
+    const hasKorean = voices.some((v) => v.lang && v.lang.startsWith("ko"));
+    if (!hasKorean) {
+      voiceNoticeEl.classList.add("show");
+      setTimeout(() => voiceNoticeEl.classList.remove("show"), 6000);
+    }
+  }
+  voiceNoticeEl?.addEventListener("click", () => voiceNoticeEl.classList.remove("show"));
+
+  // 크롬 계열 브라우저는 발화가 길어지거나 탭이 잠시 쉬면 speechSynthesis가
+  // 멈춰버리는 알려진 버그가 있어, 말하는 동안 주기적으로 깨워준다.
+  let speechWatchdog = null;
+  function stopSpeechWatchdog() {
+    clearInterval(speechWatchdog);
+    speechWatchdog = null;
   }
 
   function speak(text) {
     if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ko-KR";
-    const koVoice = voices.find((v) => v.lang && v.lang.startsWith("ko"));
-    if (koVoice) utter.voice = koVoice;
-    utter.rate = 0.85;
-    utter.pitch = 1.15;
-    window.speechSynthesis.speak(utter);
+    voicesReady.then(() => {
+      maybeShowVoiceNotice();
+      window.speechSynthesis.cancel();
+      stopSpeechWatchdog();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "ko-KR";
+      const koVoice = voices.find((v) => v.lang && v.lang.startsWith("ko"));
+      if (koVoice) {
+        try {
+          utter.voice = koVoice;
+        } catch (e) {
+          /* 음성 객체를 지정하지 못해도 lang 속성만으로 계속 진행 */
+        }
+      }
+      utter.rate = 0.85;
+      utter.pitch = 1.15;
+
+      utter.onstart = () => {
+        speechWatchdog = setInterval(() => {
+          if (!window.speechSynthesis.speaking) {
+            stopSpeechWatchdog();
+            return;
+          }
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        }, 4000);
+      };
+      utter.onend = stopSpeechWatchdog;
+      utter.onerror = stopSpeechWatchdog;
+
+      window.speechSynthesis.speak(utter);
+    });
   }
 
   function speakLetter(item) {
@@ -186,6 +243,7 @@
     Object.values(screens).forEach((s) => s.classList.remove("active"));
     screens[name].classList.add("active");
     homeBtn.classList.toggle("hidden", name === "home");
+    stopSpeechWatchdog();
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
 
