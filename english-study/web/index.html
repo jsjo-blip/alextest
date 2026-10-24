@@ -473,14 +473,16 @@ details.past[open] > summary { margin-bottom: 8px; }
     if (since >= 2 && avg >= UP && newLevel < 5) { newLevel++; note = `최근 ${win.length}회 평균 ${avg}% → Lv.${newLevel} ${LEVELS[newLevel - 1].name}로 올라갑니다. 내일 스토리부터 적용돼요.`; }
     else if (since >= 2 && avg < DOWN && newLevel > 1) { newLevel--; note = `최근 ${win.length}회 평균 ${avg}% → Lv.${newLevel} ${LEVELS[newLevel - 1].name}로 조정합니다. 복습 비중을 늘릴게요.`; }
     if (newLevel !== m.level) hist.push({ date: now, from: m.level, to: newLevel, reason: `최근 ${win.length}회 평균 ${avg}%` });
+    // retry each write so one transient failure doesn't leave vocab/meta half-updated
+    const retry = async (fn) => { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 3) throw e; await new Promise((r) => setTimeout(r, 400 * 2 ** i)); } } };
     try {
-      await S.db.doc("tests/" + date).update({ submitted: true, responses: draft, results, score, total, submittedAt: new Date().toISOString(), levelNote: note || null });
+      await retry(() => S.db.doc("tests/" + date).update({ submitted: true, responses: draft, results, score, total, submittedAt: new Date().toISOString(), levelNote: note || null }));
       for (const [id, ok] of Object.entries(outcome)) {
         const v = S.vocab[id]; if (!v) continue;
         const box = ok ? Math.min(5, (v.box || 0) + 1) : 0;
-        await S.db.doc("vocab/" + id).update({ box, next_review: addDays(now, INTERVALS[box]), last_tested: now, correct: (v.correct || 0) + (ok ? 1 : 0), wrong: (v.wrong || 0) + (ok ? 0 : 1) });
+        await retry(() => S.db.doc("vocab/" + id).update({ box, next_review: addDays(now, INTERVALS[box]), last_tested: now, correct: (v.correct || 0) + (ok ? 1 : 0), wrong: (v.wrong || 0) + (ok ? 0 : 1) }));
       }
-      await S.db.doc("meta/state").set({ ...m, level: newLevel, testsSinceChange: newLevel !== m.level ? 0 : since, levelHistory: hist, lastScore: p, updatedAt: new Date().toISOString() });
+      await retry(() => S.db.doc("meta/state").set({ ...m, level: newLevel, testsSinceChange: newLevel !== m.level ? 0 : since, levelHistory: hist, lastScore: p, updatedAt: new Date().toISOString() }));
       delete S.drafts[date]; delete S.phase[date]; delete S.self[date]; saveDrafts();
       toast(`저장했어요 · ${score}/${total} (${p}%)`);
     } catch (e) { toast("결과를 저장하지 못했어요. 다시 시도해 주세요."); }
