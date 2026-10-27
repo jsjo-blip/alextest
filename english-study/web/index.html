@@ -459,34 +459,56 @@ details.past[open] > summary { margin-bottom: 8px; }
     S.saving = true; render();
     const results = {}; let score = 0;
     t.questions.forEach((q) => { const ok = q.type === "write" ? !!self[q.id] : autoGrade(q, draft[q.id]); results[q.id] = ok; if (ok) score++; });
-    const total = t.questions.length, p = Math.round((score / total) * 100), now = today();
-    // per-vocab outcome: correct only if every question on it was right
-    const outcome = {};
-    t.questions.forEach((q) => (q.vocab || []).forEach((id) => { outcome[id] = (outcome[id] ?? true) && results[q.id]; }));
-    // level evaluation
-    const m = S.meta || { level: 3, testsSinceChange: 0, levelHistory: [] };
-    const since = (m.testsSinceChange || 0) + 1;
-    const prev = testList().filter((x) => x.submitted && x.date !== date).map(pct);
-    const win = [p, ...prev].slice(0, Math.min(3, since));
-    const avg = Math.round(win.reduce((s, x) => s + x, 0) / win.length);
-    let newLevel = m.level || 3, note = "", hist = (m.levelHistory || []).slice();
-    if (since >= 2 && avg >= UP && newLevel < 5) { newLevel++; note = `최근 ${win.length}회 평균 ${avg}% → Lv.${newLevel} ${LEVELS[newLevel - 1].name}로 올라갑니다. 내일 스토리부터 적용돼요.`; }
-    else if (since >= 2 && avg < DOWN && newLevel > 1) { newLevel--; note = `최근 ${win.length}회 평균 ${avg}% → Lv.${newLevel} ${LEVELS[newLevel - 1].name}로 조정합니다. 복습 비중을 늘릴게요.`; }
-    if (newLevel !== m.level) hist.push({ date: now, from: m.level, to: newLevel, reason: `최근 ${win.length}회 평균 ${avg}%` });
-    // retry each write so one transient failure doesn't leave vocab/meta half-updated
-    const retry = async (fn) => { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 3) throw e; await new Promise((r) => setTimeout(r, 400 * 2 ** i)); } } };
+    const total = t.questions.length, p = Math.round((score / total) * 100);
     try {
-      await retry(() => S.db.doc("tests/" + date).update({ submitted: true, responses: draft, results, score, total, submittedAt: new Date().toISOString(), levelNote: note || null }));
-      for (const [id, ok] of Object.entries(outcome)) {
-        const v = S.vocab[id]; if (!v) continue;
-        const box = ok ? Math.min(5, (v.box || 0) + 1) : 0;
-        await retry(() => S.db.doc("vocab/" + id).update({ box, next_review: addDays(now, INTERVALS[box]), last_tested: now, correct: (v.correct || 0) + (ok ? 1 : 0), wrong: (v.wrong || 0) + (ok ? 0 : 1) }));
-      }
-      await retry(() => S.db.doc("meta/state").set({ ...m, level: newLevel, testsSinceChange: newLevel !== m.level ? 0 : since, levelHistory: hist, lastScore: p, updatedAt: new Date().toISOString() }));
+      // results first (applied:false), then vocab/meta; applyTest resumes on next load if interrupted
+      await retry(() => S.db.doc("tests/" + date).update({ submitted: true, applied: false, responses: draft, results, score, total, submittedAt: new Date().toISOString(), levelNote: null }));
       delete S.drafts[date]; delete S.phase[date]; delete S.self[date]; saveDrafts();
+      await applyTest(date, { ...t, results, score, total });
       toast(`저장했어요 · ${score}/${total} (${p}%)`);
-    } catch (e) { toast("결과를 저장하지 못했어요. 다시 시도해 주세요."); }
+    } catch (e) { toast("결과 일부를 아직 반영하지 못했어요. 다음에 열 때 자동으로 이어서 반영합니다."); }
     S.saving = false; render();
+  }
+
+  // the store rate-limits bursts of writes, so space them out and back off generously
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function retry(fn) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 4) throw e; await sleep(1500 * 2 ** i); } } }
+
+  // apply a submitted test's results to vocab and meta; idempotent via appliedTest markers
+  const applying = new Set();
+  async function applyTest(date, t) {
+    if (applying.has(date)) return; applying.add(date);
+    try {
+      const now = (t.submittedAt ? new Date(t.submittedAt) : new Date()).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+      const outcome = {}; // correct only if every question on it was right
+      t.questions.forEach((q) => (q.vocab || []).forEach((id) => { outcome[id] = (outcome[id] ?? true) && !!t.results[q.id]; }));
+      for (const [id, ok] of Object.entries(outcome)) {
+        const v = S.vocab[id]; if (!v || v.appliedTest === date) continue;
+        const box = ok ? Math.min(5, (v.box || 0) + 1) : 0;
+        await retry(() => S.db.doc("vocab/" + id).update({ box, next_review: addDays(now, INTERVALS[box]), last_tested: now, correct: (v.correct || 0) + (ok ? 1 : 0), wrong: (v.wrong || 0) + (ok ? 0 : 1), appliedTest: date }));
+        await sleep(250);
+      }
+      let note = null;
+      const m = S.meta || { level: 3, testsSinceChange: 0, levelHistory: [] };
+      if (m.appliedTest !== date) {
+        const p = Math.round((t.score / t.total) * 100), since = (m.testsSinceChange || 0) + 1;
+        const prev = testList().filter((x) => x.submitted && x.date !== date).map(pct);
+        const win = [p, ...prev].slice(0, Math.min(3, since));
+        const avg = Math.round(win.reduce((s, x) => s + x, 0) / win.length);
+        let newLevel = m.level || 3; const hist = (m.levelHistory || []).slice();
+        if (since >= 2 && avg >= UP && newLevel < 5) { newLevel++; note = `최근 ${win.length}회 평균 ${avg}% → Lv.${newLevel} ${LEVELS[newLevel - 1].name}로 올라갑니다. 내일 스토리부터 적용돼요.`; }
+        else if (since >= 2 && avg < DOWN && newLevel > 1) { newLevel--; note = `최근 ${win.length}회 평균 ${avg}% → Lv.${newLevel} ${LEVELS[newLevel - 1].name}로 조정합니다. 복습 비중을 늘릴게요.`; }
+        if (newLevel !== m.level) hist.push({ date: now, from: m.level, to: newLevel, reason: `최근 ${win.length}회 평균 ${avg}%` });
+        await retry(() => S.db.doc("meta/state").set({ ...m, level: newLevel, testsSinceChange: newLevel !== m.level ? 0 : since, levelHistory: hist, lastScore: p, appliedTest: date, updatedAt: new Date().toISOString() }));
+      }
+      await retry(() => S.db.doc("tests/" + date).update(note ? { applied: true, levelNote: note } : { applied: true }));
+    } finally { applying.delete(date); }
+  }
+  // finish any submission that was interrupted before all of its writes landed
+  function resumePending() {
+    if (S.loaded.size < 4 || !S.db) return;
+    Object.values(S.tests).filter((t) => t.submitted && t.applied === false && !applying.has(t.date))
+      .forEach((t) => applyTest(t.date, t).catch(() => {}));
   }
 
   document.addEventListener("toggle", (e) => { if (e.target.id === "pastTests") S.showDone = e.target.open; }, true);
@@ -520,10 +542,10 @@ details.past[open] > summary { margin-bottom: 8px; }
     S.db = db;
     if (!db) { render(); return; }
     const sub = (name, coll) => db.collection(coll).onSnapshot((snap) => {
-      const o = {}; snap.docs.forEach((d) => { o[d.id] = d.data(); }); S[name] = o; S.loaded.add(name); renderSafe();
+      const o = {}; snap.docs.forEach((d) => { o[d.id] = d.data(); }); S[name] = o; S.loaded.add(name); renderSafe(); resumePending();
     }, () => { S.loaded.add(name); renderSafe(); });
     sub("days", "days"); sub("vocab", "vocab"); sub("tests", "tests");
-    db.doc("meta/state").onSnapshot((d) => { S.meta = d.exists ? d.data() : null; S.loaded.add("meta"); renderSafe(); }, () => { S.loaded.add("meta"); renderSafe(); });
+    db.doc("meta/state").onSnapshot((d) => { S.meta = d.exists ? d.data() : null; S.loaded.add("meta"); renderSafe(); resumePending(); },() => { S.loaded.add("meta"); renderSafe(); });
   }
   // keep typed answers and focus intact while live updates arrive
   function renderSafe() {
