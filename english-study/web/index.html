@@ -472,7 +472,7 @@ details.past[open] > summary { margin-bottom: 8px; }
 
   // the store rate-limits bursts of writes, so space them out and back off generously
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  async function retry(fn) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 4) throw e; await sleep(1500 * 2 ** i); } } }
+  async function retry(fn) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 6 || e?.code === "invalid_argument" || e?.code === "quota_exceeded") throw e; await sleep(Math.min(30000, 2000 * 2 ** i) + Math.random() * 500); } } }
 
   // apply a submitted test's results to vocab and meta; idempotent via appliedTest markers
   const applying = new Set();
@@ -482,11 +482,12 @@ details.past[open] > summary { margin-bottom: 8px; }
       const now = (t.submittedAt ? new Date(t.submittedAt) : new Date()).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
       const outcome = {}; // correct only if every question on it was right
       t.questions.forEach((q) => (q.vocab || []).forEach((id) => { outcome[id] = (outcome[id] ?? true) && !!t.results[q.id]; }));
-      for (const [id, ok] of Object.entries(outcome)) {
-        const v = S.vocab[id]; if (!v || v.appliedTest === date) continue;
+      const todo = Object.entries(outcome).filter(([id]) => S.vocab[id] && S.vocab[id].appliedTest !== date); let n = 0;
+      for (const [id, ok] of todo) {
+        const v = S.vocab[id]; toast(`결과 반영 중 ${++n}/${todo.length} · 창을 닫지 말아 주세요`);
         const box = ok ? Math.min(5, (v.box || 0) + 1) : 0;
         await retry(() => S.db.doc("vocab/" + id).update({ box, next_review: addDays(now, INTERVALS[box]), last_tested: now, correct: (v.correct || 0) + (ok ? 1 : 0), wrong: (v.wrong || 0) + (ok ? 0 : 1), appliedTest: date }));
-        await sleep(250);
+        await sleep(1000);
       }
       let note = null;
       const m = S.meta || { level: 3, testsSinceChange: 0, levelHistory: [] };
@@ -505,11 +506,18 @@ details.past[open] > summary { margin-bottom: 8px; }
     } finally { applying.delete(date); }
   }
   // finish any submission that was interrupted before all of its writes landed
-  function resumePending() {
-    if (S.loaded.size < 4 || !S.db) return;
-    Object.values(S.tests).filter((t) => t.submitted && t.applied === false && !applying.has(t.date))
-      .forEach((t) => applyTest(t.date, t).catch(() => {}));
+  // one test at a time, so a backlog of submissions doesn't burst past the write-rate budget
+  let resuming = false;
+  async function resumePending() {
+    if (resuming || S.saving || S.loaded.size < 4 || !S.db) return;
+    resuming = true;
+    try {
+      for (const t of Object.values(S.tests).filter((x) => x.submitted && x.applied === false && !applying.has(x.date)).sort((x, y) => x.date.localeCompare(y.date))) {
+        try { await applyTest(t.date, t); } catch (e) { break; }
+      }
+    } finally { resuming = false; }
   }
+  setInterval(() => resumePending(), 60000);
 
   document.addEventListener("toggle", (e) => { if (e.target.id === "pastTests") S.showDone = e.target.open; }, true);
 
