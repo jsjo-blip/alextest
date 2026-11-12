@@ -61,3 +61,14 @@
 - `vocab.json` — 전체 표현 목록과 복습 상태
 - `stories/` — 날짜별 아침 스토리
 - `tests/` — 날짜별 저녁 테스트와 채점 결과
+
+## 내가 공유한 자료 반영
+
+채팅으로 기사·문구·PDF를 공유하면 중상급 이상 경제·비즈니스 표현을 골라 단어장(vocab)에 추가합니다.
+- `source` 필드에 자료 제목을 기록하고, 단어장에는 "📎 내 자료" 태그로 표시됩니다.
+- 예문은 새로 만들고, 다음 날부터 복습·테스트에 우선 출제됩니다.
+- 공유 자료로 표현이 많이 추가된 날은 다음 날 스토리의 새 표현 수를 그만큼 줄입니다.
+
+| 날짜 | 자료 | 추가 표현 |
+|---|---|---|
+| 2026-11-13 | How a $3 Trip Becomes a $60 Bill (Ringle) | playbook, lay out, high-margin products, pester power, staples, FOMO, ultra-processed food, decision fatigue, loss aversion, operate on thin margins, shelf space / end-of-aisle placement, position oneself as, hard-wired |

@@ -392,7 +392,7 @@ details.past[open] > summary { margin-bottom: 8px; }
         <section class="card">${list.map((v) => {
           const tries = (v.correct || 0) + (v.wrong || 0);
           return `<div class="vrow">
-            <div style="min-width:0"><b>${esc(v.expression)}</b> <span class="muted">— ${esc(v.meaning)}</span>${v.example ? `<div class="muted" style="font-family:var(--f-read);font-style:italic">${esc(v.example)}</div>` : ""}</div>
+            <div style="min-width:0"><b>${esc(v.expression)}</b>${v.source ? `<span class="tag rv" title="${esc(v.source)}">📎 내 자료</span>` : ""} <span class="muted">— ${esc(v.meaning)}</span>${v.example ? `<div class="muted" style="font-family:var(--f-read);font-style:italic">${esc(v.example)}</div>` : ""}</div>
             <span class="boxes" title="암기 단계 ${v.box || 0}/5">${[1, 2, 3, 4, 5].map((n) => `<i class="${n <= (v.box || 0) ? "on" : ""}"></i>`).join("")}</span>
             <div class="meta"><span class="${v.next_review <= t ? "due" : ""}">다음 복습 ${v.next_review <= t ? "오늘" : fmt(v.next_review)}</span><span>정답률 <span class="num">${tries ? Math.round((v.correct / tries) * 100) + "%" : "–"}</span> (${tries}회)</span><span>${fmt(v.introduced)} 학습</span></div>
           </div>`; }).join("") || `<div class="empty">해당하는 표현이 없습니다.</div>`}</section>
