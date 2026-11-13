@@ -367,6 +367,52 @@ button {
   margin-bottom: 1rem;
 }
 
+/* ---------- 따라쓰기 (tracing) screens ---------- */
+.menu-btn.syllable { background: linear-gradient(135deg, #ffd166, #ff9f45); }
+
+.trace-cue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  margin-bottom: 0.7rem;
+  min-height: 2rem;
+}
+.trace-cue-emoji { font-size: 1.8rem; }
+.trace-cue-text { font-size: 1.4rem; color: var(--ink); }
+.trace-cue-word { font-size: 1.05rem; color: var(--ink); opacity: 0.6; }
+
+.trace-canvas {
+  background: var(--card);
+  border-radius: 32px;
+  box-shadow: 0 10px 0 rgba(0,0,0,0.08), 0 16px 28px rgba(0,0,0,0.1);
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.trace-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.trace-clear-btn {
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  background: var(--card);
+  font-size: 1.6rem;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+}
+.trace-clear-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,0.08); }
+
+.option-btn.option-wide {
+  width: auto;
+  min-width: 140px;
+  padding: 0 1.2rem;
+  font-size: 2.1rem;
+}
+
 @media (max-width: 380px) {
   .title { font-size: 1.9rem; }
   .menu-btn { font-size: 1.25rem; padding: 1.1rem 1.3rem; }
@@ -401,6 +447,9 @@ button {
       </button>
       <button id="menu-word" class="menu-btn word">
         <span class="emoji">🔤</span> 단어 만들기
+      </button>
+      <button id="menu-trace" class="menu-btn syllable">
+        <span class="emoji">✏️</span> 따라쓰기
       </button>
     </div>
   </section>
@@ -441,6 +490,53 @@ button {
     <div class="word-result" id="word-result"></div>
     <div class="word-step-hint" id="word-step-hint"></div>
     <div class="quiz-options" id="word-options"></div>
+  </section>
+
+  <!-- 따라쓰기 카테고리 선택 화면 -->
+  <section id="screen-trace-menu" class="screen">
+    <h1 class="title">✏️ 따라쓰기</h1>
+    <div class="menu">
+      <button id="trace-menu-consonant" class="menu-btn consonant">
+        <span class="emoji">🦁</span> 자음
+      </button>
+      <button id="trace-menu-vowel" class="menu-btn vowel">
+        <span class="emoji">🍦</span> 모음
+      </button>
+      <button id="trace-menu-syllable" class="menu-btn syllable">
+        <span class="emoji">🈴</span> 글자
+      </button>
+      <button id="trace-menu-word" class="menu-btn word">
+        <span class="emoji">🔤</span> 단어
+      </button>
+    </div>
+  </section>
+
+  <!-- 따라쓰기 연습 화면 (점선 따라쓰기 / 점선 없이 쓰기 공용) -->
+  <section id="screen-trace" class="screen">
+    <div class="deck-label" id="trace-stage-label"></div>
+    <div class="trace-cue">
+      <span class="trace-cue-emoji" id="trace-cue-emoji"></span>
+      <span class="trace-cue-text" id="trace-cue-text"></span>
+      <span class="trace-cue-word" id="trace-cue-word"></span>
+    </div>
+    <canvas id="trace-canvas" class="trace-canvas"></canvas>
+    <div class="trace-controls">
+      <button id="trace-clear-btn" class="trace-clear-btn" aria-label="지우기">🧹</button>
+      <button id="trace-speaker-btn" class="speaker-btn" aria-label="소리 듣기" style="margin-top:0;">🔊</button>
+      <button id="trace-next-btn" class="nav-arrow" aria-label="다음">▶</button>
+    </div>
+    <div class="dots" id="trace-dots"></div>
+  </section>
+
+  <!-- 따라쓰기 퀴즈 화면 -->
+  <section id="screen-trace-quiz" class="screen">
+    <div class="deck-label" id="trace-quiz-label"></div>
+    <div class="quiz-prompt">
+      <div class="quiz-emoji" id="trace-quiz-emoji"></div>
+      <div class="quiz-word" id="trace-quiz-word"></div>
+      <div class="quiz-hint" id="trace-quiz-hint"></div>
+    </div>
+    <div class="quiz-options" id="trace-quiz-options"></div>
   </section>
 
   <script>
@@ -521,6 +617,29 @@ button {
     return String.fromCodePoint(code);
   }
 
+  // ------------------------------------------------------------- 따라쓰기 (레벨 1)
+  // 글자(음절): 가나다라...의 기본 14자, 전부 기본 자음 + 모음 'ㅏ'로만 구성
+  const SYLLABLES = CONSONANTS.map((c) => ({ text: composeSyllable(c.char, "ㅏ") }));
+
+  const TRACE_CATEGORIES = {
+    consonant: {
+      label: "자음",
+      items: CONSONANTS.map((c) => ({ text: c.char, cueWord: c.word, emoji: c.emoji })),
+    },
+    vowel: {
+      label: "모음",
+      items: VOWELS.map((v) => ({ text: v.char, cueWord: v.word, emoji: v.emoji })),
+    },
+    syllable: {
+      label: "글자",
+      items: SYLLABLES.map((s) => ({ text: s.text, cueWord: null, emoji: null })),
+    },
+    word: {
+      label: "단어",
+      items: WORDS_LEVEL1.map((w) => ({ text: w.word, cueWord: null, emoji: w.emoji })),
+    },
+  };
+
   // ------------------------------------------------------------- 상태
   const state = {
     deck: [],
@@ -534,6 +653,13 @@ button {
     wordStep: 0,
     wordLocked: false,
     lastWordIndex: -1,
+    traceCategoryKey: null,
+    traceItems: [],
+    traceIndex: 0,
+    traceStage: "dotted",
+    traceQuizPool: [],
+    traceQuizTarget: null,
+    traceQuizLocked: false,
   };
 
   // ------------------------------------------------------------- 요소
@@ -542,6 +668,9 @@ button {
     learn: document.getElementById("screen-learn"),
     quiz: document.getElementById("screen-quiz"),
     word: document.getElementById("screen-word"),
+    traceMenu: document.getElementById("screen-trace-menu"),
+    trace: document.getElementById("screen-trace"),
+    traceQuiz: document.getElementById("screen-trace-quiz"),
   };
   const homeBtn = document.getElementById("home-btn");
   const starCountEl = document.getElementById("star-count");
@@ -560,6 +689,18 @@ button {
   const wordResultEl = document.getElementById("word-result");
   const wordStepHint = document.getElementById("word-step-hint");
   const wordOptions = document.getElementById("word-options");
+  const traceStageLabel = document.getElementById("trace-stage-label");
+  const traceCueEmoji = document.getElementById("trace-cue-emoji");
+  const traceCueText = document.getElementById("trace-cue-text");
+  const traceCueWord = document.getElementById("trace-cue-word");
+  const traceCanvas = document.getElementById("trace-canvas");
+  const traceCtx = traceCanvas.getContext("2d");
+  const traceDotsEl = document.getElementById("trace-dots");
+  const traceQuizLabel = document.getElementById("trace-quiz-label");
+  const traceQuizEmoji = document.getElementById("trace-quiz-emoji");
+  const traceQuizWord = document.getElementById("trace-quiz-word");
+  const traceQuizHint = document.getElementById("trace-quiz-hint");
+  const traceQuizOptions = document.getElementById("trace-quiz-options");
   const canvas = document.getElementById("confetti-canvas");
   const ctx = canvas.getContext("2d");
 
@@ -976,11 +1117,227 @@ button {
     if (state.wordTarget) speak(state.wordTarget.word);
   });
 
+  // ------------------------------------------------------------- 따라쓰기 캔버스
+  const TRACE_SIZE = 280;
+  let traceDrawing = false;
+
+  function setupTraceCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    traceCanvas.width = TRACE_SIZE * dpr;
+    traceCanvas.height = TRACE_SIZE * dpr;
+    traceCanvas.style.width = TRACE_SIZE + "px";
+    traceCanvas.style.height = TRACE_SIZE + "px";
+    traceCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  setupTraceCanvas();
+
+  function traceFontSize(text) {
+    return text.length === 1 ? TRACE_SIZE * 0.62 : TRACE_SIZE * 0.36;
+  }
+
+  function drawTraceGuide(text) {
+    traceCtx.clearRect(0, 0, TRACE_SIZE, TRACE_SIZE);
+    if (!text) return;
+    traceCtx.save();
+    traceCtx.font = `900 ${traceFontSize(text)}px "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
+    traceCtx.textAlign = "center";
+    traceCtx.textBaseline = "middle";
+    traceCtx.lineWidth = 3;
+    traceCtx.setLineDash([10, 12]);
+    traceCtx.strokeStyle = "rgba(58, 46, 92, 0.35)";
+    traceCtx.strokeText(text, TRACE_SIZE / 2, TRACE_SIZE / 2);
+    traceCtx.restore();
+  }
+
+  function clearTraceInk() {
+    const item = state.traceItems[state.traceIndex];
+    drawTraceGuide(state.traceStage === "dotted" && item ? item.text : "");
+  }
+
+  function tracePointerPos(e) {
+    const rect = traceCanvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  traceCanvas.addEventListener("pointerdown", (e) => {
+    traceDrawing = true;
+    const p = tracePointerPos(e);
+    traceCtx.beginPath();
+    traceCtx.moveTo(p.x, p.y);
+    try {
+      traceCanvas.setPointerCapture(e.pointerId);
+    } catch (err) {
+      /* 일부 브라우저는 포인터 캡처를 지원하지 않음 */
+    }
+  });
+  traceCanvas.addEventListener("pointermove", (e) => {
+    if (!traceDrawing) return;
+    const p = tracePointerPos(e);
+    traceCtx.lineCap = "round";
+    traceCtx.lineJoin = "round";
+    traceCtx.lineWidth = 16;
+    traceCtx.setLineDash([]);
+    traceCtx.strokeStyle = "#8a5cf6";
+    traceCtx.lineTo(p.x, p.y);
+    traceCtx.stroke();
+  });
+  function stopTraceDrawing() {
+    traceDrawing = false;
+  }
+  traceCanvas.addEventListener("pointerup", stopTraceDrawing);
+  traceCanvas.addEventListener("pointerleave", stopTraceDrawing);
+  traceCanvas.addEventListener("pointercancel", stopTraceDrawing);
+
+  document.getElementById("trace-clear-btn").addEventListener("click", clearTraceInk);
+
+  // ------------------------------------------------------------- 따라쓰기 화면
+  function openTraceMenu() {
+    showScreen("traceMenu");
+  }
+
+  function speakTraceItem(item) {
+    if (item.cueWord) {
+      speak(`${item.text}! ${item.cueWord}`);
+    } else {
+      speak(item.text);
+    }
+  }
+
+  function startTraceCategory(key) {
+    state.traceCategoryKey = key;
+    state.traceItems = TRACE_CATEGORIES[key].items;
+    state.traceIndex = 0;
+    state.traceStage = "dotted";
+    renderTraceItem();
+    showScreen("trace");
+  }
+
+  function renderTraceDots() {
+    traceDotsEl.innerHTML = "";
+    state.traceItems.forEach((_, i) => {
+      const d = document.createElement("span");
+      d.className = "dot" + (i === state.traceIndex ? " active" : "");
+      traceDotsEl.appendChild(d);
+    });
+  }
+
+  function renderTraceItem() {
+    const item = state.traceItems[state.traceIndex];
+    const categoryLabel = TRACE_CATEGORIES[state.traceCategoryKey].label;
+    const stageLabel = state.traceStage === "dotted" ? "점선 따라 쓰기" : "점선 없이 쓰기";
+    traceStageLabel.textContent = `${categoryLabel} · ${stageLabel}`;
+
+    traceCueEmoji.textContent = item.emoji || "";
+    traceCueText.textContent = item.text;
+    traceCueWord.textContent = item.cueWord || "";
+
+    drawTraceGuide(state.traceStage === "dotted" ? item.text : "");
+    renderTraceDots();
+    speakTraceItem(item);
+  }
+
+  function goTraceNext() {
+    if (state.traceIndex < state.traceItems.length - 1) {
+      state.traceIndex += 1;
+      renderTraceItem();
+      return;
+    }
+    if (state.traceStage === "dotted") {
+      state.traceStage = "free";
+      state.traceIndex = 0;
+      renderTraceItem();
+      return;
+    }
+    startTraceQuiz(state.traceCategoryKey);
+  }
+
+  document.getElementById("trace-next-btn").addEventListener("click", goTraceNext);
+  document.getElementById("trace-speaker-btn").addEventListener("click", () => {
+    const item = state.traceItems[state.traceIndex];
+    if (item) speakTraceItem(item);
+  });
+
+  // ------------------------------------------------------------- 따라쓰기 퀴즈
+  const TRACE_QUIZ_HINTS = {
+    consonant: "어떤 글자로 시작할까요?",
+    vowel: "어떤 글자로 시작할까요?",
+    syllable: "방금 들은 글자를 찾아보세요",
+    word: "그림에 맞는 낱말을 찾아보세요",
+  };
+
+  function startTraceQuiz(key) {
+    state.traceCategoryKey = key;
+    state.traceQuizPool = TRACE_CATEGORIES[key].items;
+    traceQuizLabel.textContent = `${TRACE_CATEGORIES[key].label} 퀴즈`;
+    traceQuizHint.textContent = TRACE_QUIZ_HINTS[key];
+    nextTraceQuizQuestion();
+    showScreen("traceQuiz");
+  }
+
+  function pickTraceQuizDistractors(target, count) {
+    const others = state.traceQuizPool.filter((it) => it.text !== target.text);
+    const picked = [];
+    while (picked.length < count && others.length) {
+      const idx = Math.floor(Math.random() * others.length);
+      picked.push(others.splice(idx, 1)[0]);
+    }
+    return picked;
+  }
+
+  function nextTraceQuizQuestion() {
+    state.traceQuizLocked = false;
+    const pool = state.traceQuizPool;
+    const target = pool[Math.floor(Math.random() * pool.length)];
+    state.traceQuizTarget = target;
+
+    traceQuizEmoji.textContent = target.emoji || "🔊";
+    traceQuizWord.textContent = target.cueWord || "";
+
+    const options = [target, ...pickTraceQuizDistractors(target, 2)];
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    traceQuizOptions.innerHTML = "";
+    options.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn" + (opt.text.length > 1 ? " option-wide" : "");
+      btn.textContent = opt.text;
+      btn.addEventListener("click", () => handleTraceQuizAnswer(btn, opt));
+      traceQuizOptions.appendChild(btn);
+    });
+
+    speakTraceItem(target);
+  }
+
+  function handleTraceQuizAnswer(btn, opt) {
+    if (state.traceQuizLocked) return;
+    if (opt.text === state.traceQuizTarget.text) {
+      state.traceQuizLocked = true;
+      btn.classList.add("correct");
+      addStars(1);
+      playChime();
+      showPraise();
+      speak(pickPraise());
+      setTimeout(nextTraceQuizQuestion, 1400);
+    } else {
+      btn.classList.add("wrong");
+      speak("다시 해볼까요?");
+      setTimeout(() => btn.classList.remove("wrong"), 400);
+    }
+  }
+
   // ------------------------------------------------------------- 메뉴 버튼
   document.getElementById("menu-consonant").addEventListener("click", () => openLearn("consonant"));
   document.getElementById("menu-vowel").addEventListener("click", () => openLearn("vowel"));
   document.getElementById("menu-quiz").addEventListener("click", openQuiz);
   document.getElementById("menu-word").addEventListener("click", openWordGame);
+  document.getElementById("menu-trace").addEventListener("click", openTraceMenu);
+  document.getElementById("trace-menu-consonant").addEventListener("click", () => startTraceCategory("consonant"));
+  document.getElementById("trace-menu-vowel").addEventListener("click", () => startTraceCategory("vowel"));
+  document.getElementById("trace-menu-syllable").addEventListener("click", () => startTraceCategory("syllable"));
+  document.getElementById("trace-menu-word").addEventListener("click", () => startTraceCategory("word"));
 
   showScreen("home");
 })();

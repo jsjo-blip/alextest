@@ -32,6 +32,9 @@
       <button id="menu-word" class="menu-btn word">
         <span class="emoji">🔤</span> 단어 만들기
       </button>
+      <button id="menu-trace" class="menu-btn syllable">
+        <span class="emoji">✏️</span> 따라쓰기
+      </button>
     </div>
   </section>
 
@@ -71,6 +74,53 @@
     <div class="word-result" id="word-result"></div>
     <div class="word-step-hint" id="word-step-hint"></div>
     <div class="quiz-options" id="word-options"></div>
+  </section>
+
+  <!-- 따라쓰기 카테고리 선택 화면 -->
+  <section id="screen-trace-menu" class="screen">
+    <h1 class="title">✏️ 따라쓰기</h1>
+    <div class="menu">
+      <button id="trace-menu-consonant" class="menu-btn consonant">
+        <span class="emoji">🦁</span> 자음
+      </button>
+      <button id="trace-menu-vowel" class="menu-btn vowel">
+        <span class="emoji">🍦</span> 모음
+      </button>
+      <button id="trace-menu-syllable" class="menu-btn syllable">
+        <span class="emoji">🈴</span> 글자
+      </button>
+      <button id="trace-menu-word" class="menu-btn word">
+        <span class="emoji">🔤</span> 단어
+      </button>
+    </div>
+  </section>
+
+  <!-- 따라쓰기 연습 화면 (점선 따라쓰기 / 점선 없이 쓰기 공용) -->
+  <section id="screen-trace" class="screen">
+    <div class="deck-label" id="trace-stage-label"></div>
+    <div class="trace-cue">
+      <span class="trace-cue-emoji" id="trace-cue-emoji"></span>
+      <span class="trace-cue-text" id="trace-cue-text"></span>
+      <span class="trace-cue-word" id="trace-cue-word"></span>
+    </div>
+    <canvas id="trace-canvas" class="trace-canvas"></canvas>
+    <div class="trace-controls">
+      <button id="trace-clear-btn" class="trace-clear-btn" aria-label="지우기">🧹</button>
+      <button id="trace-speaker-btn" class="speaker-btn" aria-label="소리 듣기" style="margin-top:0;">🔊</button>
+      <button id="trace-next-btn" class="nav-arrow" aria-label="다음">▶</button>
+    </div>
+    <div class="dots" id="trace-dots"></div>
+  </section>
+
+  <!-- 따라쓰기 퀴즈 화면 -->
+  <section id="screen-trace-quiz" class="screen">
+    <div class="deck-label" id="trace-quiz-label"></div>
+    <div class="quiz-prompt">
+      <div class="quiz-emoji" id="trace-quiz-emoji"></div>
+      <div class="quiz-word" id="trace-quiz-word"></div>
+      <div class="quiz-hint" id="trace-quiz-hint"></div>
+    </div>
+    <div class="quiz-options" id="trace-quiz-options"></div>
   </section>
 
   <script src="/static/hangul-game.js"></script>
