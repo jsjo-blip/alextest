@@ -72,3 +72,4 @@
 | 날짜 | 자료 | 추가 표현 |
 |---|---|---|
 | 2026-11-13 | How a $3 Trip Becomes a $60 Bill (Ringle) | playbook, lay out, high-margin products, pester power, staples, FOMO, ultra-processed food, decision fatigue, loss aversion, operate on thin margins, shelf space / end-of-aisle placement, position oneself as, hard-wired |
+| 2026-11-21 | 링글 수업 (Gwen) 스크린샷 | feel grounded, flag (something) for someone |
