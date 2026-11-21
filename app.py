@@ -33,6 +33,11 @@ def hangul_game():
     return render_template("hangul_game.html")
 
 
+@app.route("/korean-study")
+def korean_study():
+    return render_template("korean_study.html")
+
+
 # ---------------------------------------------------------------- todos CRUD
 
 @app.route("/api/todos", methods=["GET"])
