@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>줄넘기 챌린지</title>
+  <link rel="stylesheet" href="/static/jump-rope.css">
+</head>
+<body>
+  <!-- 종목 선택 화면 -->
+  <section id="screen-menu" class="screen active">
+    <h1 class="title">🪢 줄넘기 챌린지</h1>
+    <p class="subtitle">종목을 고르고 <kbd>스페이스 바</kbd>로 점프하세요!</p>
+    <div class="menu">
+      <button class="event-btn basic" data-event="basic">
+        <span class="event-name">🙂 기본 뛰기</span>
+        <span class="event-desc">줄이 발밑을 지날 때 한 번 점프</span>
+        <span class="event-best">최고 <b data-best="basic">0</b>회</span>
+      </button>
+      <button class="event-btn double" data-event="double">
+        <span class="event-name">💨 쌩쌩이</span>
+        <span class="event-desc">한 번 뛸 때 줄을 두 번 돌려 넘기</span>
+        <span class="event-best">최고 <b data-best="double">0</b>회</span>
+      </button>
+      <button class="event-btn cross" data-event="cross">
+        <span class="event-name">✖️ 엇걸어뛰기</span>
+        <span class="event-desc">팔을 벌렸다 엇걸었다 번갈아 넘기</span>
+        <span class="event-best">최고 <b data-best="cross">0</b>회</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section id="screen-game" class="screen">
+    <div class="hud">
+      <button id="back-btn" class="back-btn" aria-label="종목 선택으로">←</button>
+      <div class="hud-event" id="hud-event">기본 뛰기</div>
+      <div class="hud-stats">
+        <span>횟수 <b id="hud-count">0</b></span>
+        <span>최고 <b id="hud-best">0</b></span>
+      </div>
+    </div>
+    <canvas id="game-canvas" width="800" height="450"></canvas>
+    <p class="help"><kbd>스페이스 바</kbd> 또는 화면 터치: 점프 · <kbd>Esc</kbd>: 종목 선택</p>
+  </section>
+
+  <script src="/static/jump-rope.js"></script>
+</body>
+</html>
